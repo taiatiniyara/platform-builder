@@ -4,8 +4,11 @@ description:
   7-phase gated lifecycle for greenfield builds. Compressed feature-loop for
   adding to finished projects. Use when the user wants to build a platform,
   scaffold a SaaS, start a new project, or add features to an existing one.
-  Delegates to /setup-matt-pocock-skills, /grill-with-docs, /to-issues, /tdd,
-  /codebase-design, /prototype, /review, and /handoff at each phase.
+  Delegates to /setup-matt-pocock-skills, /setup-pre-commit, /to-prd,
+  /decision-mapping, /grill-with-docs, /grill-me, /to-issues, /tdd,
+  /codebase-design, /design-an-interface, /prototype, /review,
+  /improve-codebase-architecture, /request-refactor-plan, /qa, and /handoff
+  at each phase.
 license: MIT
 compatibility: opencode
 metadata:
@@ -65,9 +68,10 @@ docs/
 Write `phase: 0` to `docs/SESSION.md`. Run `/setup-matt-pocock-skills`.
 
 Init git. Generate `.gitignore`, `README.md`, `CONTRIBUTING.md`. Create
-`docs/`, `docs/adr/`, `.scratch/`. Set up pre-commit hooks. Interrogate the
-stack for linter, formatter, typechecker — adapt, don't assume. Create blank
-`CONTEXT.md` and `docs/ARCHITECTURE.md`.
+`docs/`, `docs/adr/`, `.scratch/`. Interrogate the stack for linter, formatter,
+typechecker — adapt, don't assume. Run `/setup-pre-commit` to wire up automated
+quality checks on every commit. Create blank `CONTEXT.md` and
+`docs/ARCHITECTURE.md`.
 
 **Gate:** Linter and typechecker exit `0`. If the stack supports a test runner
 without source files, run it — otherwise skip.
@@ -78,9 +82,18 @@ without source files, run it — otherwise skip.
 
 > **What this phase does:** Interviews you relentlessly to nail down exactly what
 > you're building, what words you'll use for things, and what technical pieces
-> you'll need — before writing a single line of code.
+> you'll need — before writing a single line of code. If the idea is still vague,
+> it formalizes the vision first. If there are too many unknowns, it maps them
+> out as investigation tickets.
 
-Write `phase: 1` to `docs/SESSION.md`. Run `/grill-with-docs`.
+Write `phase: 1` to `docs/SESSION.md`.
+
+If the user hasn't articulated a clear product vision, run `/to-prd` first to
+synthesize one from the conversation. If the design space has open architectural
+unknowns — fog of war — run `/decision-mapping` to create investigation tickets
+and resolve them before grilling.
+
+Run `/grill-with-docs`.
 
 This produces `CONTEXT.md` (domain glossary) and any ADRs in `docs/adr/`.
 
@@ -125,9 +138,16 @@ dependency graph to `docs/ISSUES.md`. Publish each issue to
 > piece: write a test that fails, write the minimum code to pass it, then clean
 > up. Merge only when everything works.
 
-Write `phase: 3` to `docs/SESSION.md`. Run `/tdd` and `/codebase-design`. If
-an interface shape is uncertain, run `/prototype` first — answer the question,
-then delete the prototype.
+Write `phase: 3` to `docs/SESSION.md`. Run `/tdd` and `/codebase-design`.
+
+Before implementing an issue with tricky design trade-offs, run `/grill-me` to
+stress-test the decisions — no doc output needed since Phase 1 already wrote the
+blueprint.
+
+If an interface shape is uncertain, run `/design-an-interface` to generate
+multiple alternatives and pick the deepest one. If a specific alternative needs
+hands-on testing, run `/prototype` — answer the question, then delete the
+prototype.
 
 For each issue in dependency order:
 
@@ -151,6 +171,9 @@ target declared in `docs/ARCHITECTURE.md`: containers (Dockerfile, compose,
 volumes), serverless (provider config, env bindings), static/SPA (CDN, cache,
 routing), mobile/desktop (pipeline, signing, store metadata), or equivalent.
 
+Wire up CI to run the full test suite on every push and block merges on failure.
+For GitHub: a minimal Actions workflow. For other forges: the equivalent.
+
 **Gate:** Single-command launch succeeds for the declared target. Liveness
 signal returns success. Data survives a restart cycle.
 
@@ -169,10 +192,14 @@ Write `phase: 5` to `docs/SESSION.md`.
   up` — all three must succeed.
 - Runtime validation: strict at every boundary (API, CLI, IPC, events).
 - Auth: enforce at the boundary — reject unauthenticated before business logic.
+  Rate-limit auth endpoints against brute-force. Enable CSRF protection for
+  cookie-based sessions. Verify tokens expire and renew correctly.
+- Input fuzzing: send malformed payloads to every boundary. Confirm all
+  responses are 4xx (not 5xx). No crashes, no leaked stack traces.
 
 **Gate:** Unauthenticated request → 401 (or equivalent). Malformed input → 400
-(or equivalent) with structured error body. Migration up/down/up cycle exits
-`0`.
+(or equivalent) with structured error body. Auth endpoints rate-limited (429 on
+burst). Fuzz input returns zero 500s. Migration up/down/up cycle exits `0`.
 
 ---
 
@@ -200,14 +227,25 @@ runs successfully.
 ## Phase 7 — Upkeep
 
 > **What this phase does:** The final audit. Checks that the code matches the
-> plan, scans for security holes, and hands off a clean summary so the next
-> session knows exactly where things stand.
+> plan, scans for security holes, finds opportunities to simplify the codebase,
+> turns the best one into a safe step-by-step plan, runs an interactive bug-filing
+> session, and hands off a clean summary so the next session knows exactly where
+> things stand.
 
-Write `phase: 7` to `docs/SESSION.md`. Run `/review`.
+Write `phase: 7` to `docs/SESSION.md`. Run `/review` and
+`/improve-codebase-architecture`.
 
 Two-axis review against `CONTEXT.md` and `docs/ARCHITECTURE.md`. Run ecosystem
 dependency audit. Flag structural drift — code that contradicts the blueprint.
 Fix or issue a superseding ADR.
+
+The architecture scan identifies shallow modules — places where a large, complex
+interface sits in front of little behavior. Pick the highest-value opportunity
+and run `/request-refactor-plan` to turn it into a sequence of safe, incremental
+commits. Apply the plan.
+
+Run `/qa` for an interactive bug-filing session — surface any issues found
+during review as trackable items.
 
 Run `/handoff` to produce the session handoff document.
 
@@ -228,8 +266,9 @@ For adding features to a completed project. Write `feature: <slug>` to
 1. **Validate context.** Read `CONTEXT.md` and `docs/ARCHITECTURE.md`. If the
    stack or domain model has drifted, update the relevant file and write an ADR.
 2. **Issue.** Run `/to-issues`. Gate: issues are vertical slices, agent-ready.
-3. **Implement.** Run `/tdd` and `/codebase-design`. If interface shape is
-   uncertain, run `/prototype`. Gate: all new tests pass, no regressions.
+3. **Implement.** Run `/tdd` and `/codebase-design`. For complex issues, run
+   `/grill-me` to stress-test the design. If interface shape is uncertain, run
+   `/prototype`. Gate: all new tests pass, no regressions.
 4. **Review.** Run `/review`. Gate: no standards violations, no spec drift.
 
 Update `docs/SESSION.md` after each step. If the feature changes the domain
