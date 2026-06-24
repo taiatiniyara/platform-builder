@@ -42,7 +42,8 @@ State tracked across two files:
   choices or implementation details here.
 
 Architecture lives in `docs/ARCHITECTURE.md` (stack, deployment target, data
-store, auth model, network topology, API/IPC contracts — with rationale).
+store, auth model, network topology, API/IPC contracts, design system & UX
+patterns — with rationale).
 
 Deliverables layout:
 
@@ -105,6 +106,9 @@ them in `docs/ARCHITECTURE.md`:
 - System topology — what talks to what, across which boundaries.
 - API or IPC contracts — route shapes and payloads (web), module interfaces,
   event contracts, or CLI signatures (everything else).
+- UI/UX — design system or component library, UX patterns (navigation,
+  forms, loading/empty/error states), accessibility baseline, responsive
+  strategy. Each with rationale.
 
 Present `CONTEXT.md` and `docs/ARCHITECTURE.md` for review.
 
@@ -235,9 +239,11 @@ runs successfully.
 Write `phase: 7` to `docs/SESSION.md`. Run `/review` and
 `/improve-codebase-architecture`.
 
-Two-axis review against `CONTEXT.md` and `docs/ARCHITECTURE.md`. Run ecosystem
-dependency audit. Flag structural drift — code that contradicts the blueprint.
-Fix or issue a superseding ADR.
+Two-axis review against `CONTEXT.md` and `docs/ARCHITECTURE.md`. Include a UX
+audit: does the UI honor the design system, UX patterns, and accessibility
+baseline declared in Phase 1? Flag deviations. Run ecosystem dependency audit.
+Flag structural drift — code that contradicts the blueprint. Fix or issue a
+superseding ADR.
 
 The architecture scan identifies shallow modules — places where a large, complex
 interface sits in front of little behavior. Pick the highest-value opportunity
