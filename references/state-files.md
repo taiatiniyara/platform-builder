@@ -16,6 +16,21 @@ task: <what the agent is currently doing>
 last_compaction: <ISO timestamp>
 ```
 
+`last_compaction` is updated every 40 tool calls or after every 5th
+completed issue — whichever comes first. If more than 2 hours have elapsed
+since the last compaction with no phase progress, the agent must compact
+and yield to the user. An empty `last_compaction` means no compaction has
+been recorded — this is valid for fresh sessions.
+
+On a brownfield entry (source files exist but no SESSION.md):
+```
+# Session
+
+phase: 1
+task: Surveying existing codebase — extracted ARCHITECTURE.md from stack
+last_compaction:
+```
+
 On a block:
 ```
 BLOCKED: <phase> — <what failed> — <remediation prompt>
@@ -29,7 +44,7 @@ status: complete
 During a feature loop:
 ```
 feature: <slug>
-step: <1-4>
+step: <1-5>
 ```
 
 ## `CONTEXT.md`

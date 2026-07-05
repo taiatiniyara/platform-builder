@@ -146,7 +146,41 @@ These produce ugly UI. The agent must never ship these:
   pointer or keyboard. Every button, link, and card has `:hover`, `:focus-visible`,
   and `:active` states.
 
-## 7. Phase 7 UX Audit Checklist
+## 7. Internationalization (i18n)
+
+If the platform may serve non-English users, make a conscious decision in
+Phase 1 and record it in `docs/ARCHITECTURE.md`. The options are:
+
+- **Not needed now** — document the decision so it is explicit, not an
+  omission. Note the trigger for revisiting (e.g., "first request from
+  non-English locale").
+- **Included from day one** — define the i18n strategy:
+  - Translation key format: `namespace.component.key` (e.g.,
+    `checkout.payment.submitLabel`).
+  - No hardcoded strings in components. Every user-visible string goes
+    through the translation function.
+  - RTL support: layout flips for Arabic, Hebrew, etc. Use logical
+    properties (`start`/`end` not `left`/`right`).
+  - Date, number, and currency formatting use `Intl` or equivalent
+    locale-aware APIs.
+  - Language detection: `Accept-Language` header with a user override.
+
+---
+
+## 8. Accessibility in CI
+
+Beyond the Phase 7 manual audit, wire automated accessibility checks into
+the CI pipeline during Phase 4:
+
+- Run `axe-core`, `pa11y`, or equivalent on every PR against the preview
+  deployment (or a local build).
+- Block merge on critical violations (contrast failures, missing labels,
+  missing alt text on non-decorative images).
+- Monitor for regression: if the violation count increases, fail the check.
+
+---
+
+## 9. Phase 7 UX Audit Checklist
 
 The agent must verify every one of these during the Upkeep phase UX audit.
 Flag any failure as a finding.

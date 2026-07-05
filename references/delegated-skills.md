@@ -9,6 +9,7 @@ Each phase invokes specialist skills. Load them by name via the skill tool.
 | 1 | `to-prd` | Synthesize product vision from conversation |
 | 1 | `decision-mapping` | Map open architectural unknowns as investigation tickets |
 | 1 | `grill-with-docs` | Interview relentlessly; produce CONTEXT.md and ADRs |
+| 1 | `domain-modeling` | Brownfield: extract domain glossary from existing codebase |
 | 2 | `to-issues` | Break plan into vertical-slice issues with dependency graph |
 | 3 | `tdd` | Red-green-refactor cycle per issue |
 | 3 | `codebase-design` | Deep module design vocabulary |
@@ -21,8 +22,10 @@ Each phase invokes specialist skills. Load them by name via the skill tool.
 | 7 | `qa` | Interactive bug-filing session |
 | 7 | `handoff` | Compact session into handoff document |
 | FL | `to-issues` | Feature Loop: break feature into issues |
+| FL | `grill-me` | Feature Loop: mandatory design stress-test before implementation |
 | FL | `tdd` | Feature Loop: implement |
 | FL | `codebase-design` | Feature Loop: deep module design |
-| FL | `grill-me` | Feature Loop: stress-test design |
 | FL | `prototype` | Feature Loop: answer design question |
 | FL | `review` | Feature Loop: review before merge |
+| * | `graphify` | Structural codebase index — used as baseline directive, replaces file-by-file scanning with 2k-token graph queries (71.5x reduction) |
+| CB | `handoff` | Circuit breaker: compact session into handoff document when yielding |
