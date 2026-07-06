@@ -48,6 +48,13 @@ Read `docs/SESSION.md`. Branch on what you find:
 - **Phase < 7** → resume. Pick up at the recorded phase.
 - **Phase 7 complete** → platform is live. Use the **Feature Loop**.
 
+**Phase checklists are mandatory.** Before starting any phase, copy its
+checklist from `references/phase-checklists.md` into `docs/SESSION.md`.
+Tick each step AFTER completing it and verifying its artifact. Do NOT
+declare a gate passed until every step is ticked or marked N/A with
+reason. This is the primary enforcement mechanism — if a step is not
+ticked, it was not done.
+
 State tracked across two files (formats: see `references/state-files.md`):
 
 - `docs/SESSION.md` — current phase number, active task, last compaction. Write
@@ -381,3 +388,9 @@ See `references/directives.md` for the full text. Summary:
 9. **Circuit breaker.** Compact every 40 tool calls or 5 issues. Yield if
     20+ open issues or 2h without progress. Never retry the same fix 4 times.
     See `references/directives.md` §9 for brownfield entry rules.
+10. **Checklist compliance.** Copy the phase checklist from
+    `references/phase-checklists.md` into `docs/SESSION.md` before starting
+    the phase. Tick each step ONLY after its artifact exists and is
+    verifiable. Do NOT declare a gate passed until every step is ticked or
+    marked N/A with reason. This is non-negotiable — the checklist is the
+    proof of work. See `references/directives.md` §10.
