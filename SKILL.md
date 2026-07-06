@@ -325,7 +325,9 @@ Every ADR honored or explicitly superseded. Write `status: complete` to
 ## Feature Loop
 
 Ongoing cycle after the platform is live. Write `feature: <slug>` to
-`docs/SESSION.md`.
+`docs/SESSION.md`. Copy the Feature Loop checklist from
+`references/phase-checklists.md` into `docs/SESSION.md` and tick each
+step after completion.
 
 1. **Validate context.** Read `CONTEXT.md` and `docs/ARCHITECTURE.md`. Run
    `/graphify . --update`. Query the graph for drift: "Are there nodes or

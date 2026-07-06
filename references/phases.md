@@ -23,6 +23,9 @@ Create blank `CONTEXT.md` (template: `templates/CONTEXT.md`) and
 **Gate:** Linter and typechecker exit `0`. README is non-empty (project name
 + one-liner). CHANGELOG.md follows `keepachangelog.com` format. If the stack
 supports a test runner without source files, run it — otherwise skip.
+**Verification:** re-read Phase 0 checklist in `docs/SESSION.md`. Confirm
+every ticked step has a corresponding artifact. If any artifact is missing,
+complete the step before advancing.
 
 ---
 
@@ -85,6 +88,11 @@ Present `CONTEXT.md` and `docs/ARCHITECTURE.md` for review.
 ARCHITECTURE.md includes documentation posture: who writes what, where agent
 docs live (contracts, schemas, graph), where human docs live (README,
 CHANGELOG, ADRs).
+**Verification:** re-read Phase 1 checklist in `docs/SESSION.md`. Confirm
+every ticked step has a corresponding artifact. Verify ARCHITECTURE.md
+contains all required sections (stack, topology, API, UI/UX, compliance,
+cost, documentation). If any artifact is missing, complete the step before
+advancing.
 
 ---
 
@@ -101,6 +109,10 @@ field. Save the dependency graph to `docs/ISSUES.md`. Publish each issue to
 `.scratch/<feature-slug>/issue.md` (or the issue tracker if configured).
 
 **Gate:** Every issue is a vertical slice, self-contained, agent-ready.
+**Verification:** re-read Phase 2 checklist in `docs/SESSION.md`. Confirm
+every ticked step has a corresponding artifact. Verify `docs/ISSUES.md`
+exists and contains the dependency graph. If any artifact is missing,
+complete the step before advancing.
 
 ---
 
@@ -146,6 +158,10 @@ integration, e2e). No regressions. Linter + typechecker exit 0. Every
 public interface has docstrings or typed signatures (agent-facing).
 CHANGELOG updated per issue. API contracts in `docs/agents/contracts/`
 match implementation.
+**Verification:** re-read Phase 3 checklist in `docs/SESSION.md`. Confirm
+every ticked step has a corresponding artifact. Run `git log` to verify
+all issues merged. Run test suite, linter, typechecker to verify they
+exit 0. If any artifact is missing, complete the step before advancing.
 
 ---
 
@@ -200,6 +216,10 @@ the deployment matches the expected cost tier; set budget alerts.
 **Gate:** Single-command launch succeeds. Liveness signal returns success.
 Data survives a restart cycle. Preview deployments work (if applicable).
 CI pipeline passes all stages.
+**Verification:** re-read Phase 4 checklist in `docs/SESSION.md`. Confirm
+every ticked step has a corresponding artifact. Test single-command launch
+on clean clone. Verify health check returns 200. If any artifact is missing,
+complete the step before advancing.
 
 ---
 
@@ -240,6 +260,10 @@ Write `phase: 5` to `docs/SESSION.md`.
 structured error body. Rate-limited (429) on all endpoints. Idempotency
 keys prevent double-processing. Fuzz input returns zero 500s. Migration
 up/down/up cycle exits `0`. Compliance checklist items verified.
+**Verification:** re-read Phase 5 checklist in `docs/SESSION.md`. Confirm
+every ticked step has a corresponding artifact. Test unauthenticated,
+malformed, and fuzz inputs. Verify migration cycle. If any artifact is
+missing, complete the step before advancing.
 
 ---
 
@@ -304,6 +328,11 @@ dashboard. Load test passes (zero 500s, p95 within threshold). Shutdown
 test passes — zero leaked resources. Backup/restore succeeds. Alerts
 configured and routing to a real destination. Every alert has a runbook
 in `docs/runbooks/`. DEPLOYMENT.md is finalized.
+**Verification:** re-read Phase 6 checklist in `docs/SESSION.md`. Confirm
+every ticked step has a corresponding artifact. Verify dashboard shows
+metrics. Run load test, shutdown test, backup/restore. Check alerts route
+to real destination. If any artifact is missing, complete the step before
+advancing.
 
 ---
 
@@ -368,3 +397,7 @@ dead code and duplication resolved or filed. Performance audit confirms no
 regressions. Compliance audit passes. UX audit checklist passes (all items
 checked, failures filed as issues). Every ADR honored or explicitly
 superseded. Write `status: complete` to `docs/SESSION.md`.
+**Verification:** re-read Phase 7 checklist in `docs/SESSION.md`. Confirm
+every ticked step has a corresponding artifact. Run `npm audit` (or
+equivalent) to verify zero critical CVEs. Verify all audits completed.
+If any artifact is missing, complete the step before advancing.

@@ -101,3 +101,31 @@ Sessions are not infinite. Track three signals to avoid drift:
   (d) skip Phase 0 scaffolding — jump to Phase 1 (Blueprint) with the
   existing codebase as working material. Gate: ARCHITECTURE.md accurately
   describes what's already deployed.
+
+## 10. Checklist Compliance
+
+Phase checklists are the primary enforcement mechanism. Before starting
+any phase, copy its checklist from `references/phase-checklists.md` into
+`docs/SESSION.md` under the `## Phase Checklist` section.
+
+**Rules:**
+- Tick a step ONLY after its artifact exists and is verifiable. Do not
+  tick based on intent or partial completion.
+- If a step is not applicable, write `N/A — <reason>` instead of ticking.
+- Do NOT declare a gate passed until every step is ticked or marked N/A.
+- If a required skill is unavailable, write `BLOCKED — <skill> missing`
+  and yield to the user. Do not skip the step silently.
+- The checklist is the proof of work. If a step is not ticked, it was
+  not done — regardless of what the agent claims.
+
+**Verification:** before declaring a gate passed, the agent MUST:
+1. Re-read the checklist in `docs/SESSION.md`.
+2. Verify every ticked step has a corresponding artifact that exists.
+3. Confirm every artifact is valid (e.g., file is non-empty, command
+   actually exited 0, not just "should have" exited 0).
+4. If any artifact is missing or invalid, un-tick the step and complete
+   it before advancing.
+
+This directive is non-negotiable. Checklist compliance is what prevents
+agents from skipping mandatory steps like grilling, graphify, UI/UX
+reviews, and other critical quality gates.

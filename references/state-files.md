@@ -6,7 +6,7 @@ project. Architecture and backlog live alongside them.
 ## `docs/SESSION.md`
 
 Phase tracker. A single markdown file that records the current phase,
-active task, and last compaction.
+active task, last compaction, and phase checklist.
 
 ```
 # Session
@@ -14,6 +14,16 @@ active task, and last compaction.
 phase: <0-7>
 task: <what the agent is currently doing>
 last_compaction: <ISO timestamp>
+
+## Phase Checklist
+
+### Phase <N>
+
+- [ ] <step 1>
+  - Artifact: <proof the step was completed>
+- [ ] <step 2>
+  - Artifact: <proof the step was completed>
+...
 ```
 
 `last_compaction` is updated every 40 tool calls or after every 5th
@@ -21,6 +31,13 @@ completed issue — whichever comes first. If more than 2 hours have elapsed
 since the last compaction with no phase progress, the agent must compact
 and yield to the user. An empty `last_compaction` means no compaction has
 been recorded — this is valid for fresh sessions.
+
+**Phase checklist:** before starting any phase, copy its checklist from
+`references/phase-checklists.md` into the `## Phase Checklist` section.
+Tick each step (`- [x]`) ONLY after its artifact exists and is verifiable.
+Do NOT declare a gate passed until every step is ticked or marked N/A with
+reason. The checklist is the proof of work — if a step is not ticked, it
+was not done. See `references/directives.md` §10 for full rules.
 
 On a brownfield entry (source files exist but no SESSION.md):
 ```
