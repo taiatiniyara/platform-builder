@@ -43,6 +43,58 @@ check_nonempty() {
   return 0
 }
 
+check_meaningful_content() {
+  # Check file has more than just template/headers - at least N lines of actual content
+  local file="$1"
+  local min_lines="${2:-20}"
+  if [[ ! -f "$file" ]]; then
+    error "Missing file: $file"
+    return 1
+  fi
+  local line_count=$(wc -l < "$file")
+  if [[ $line_count -lt $min_lines ]]; then
+    error "File $file has only $line_count lines (expected at least $min_lines)"
+    return 1
+  fi
+  return 0
+}
+
+check_table_rows() {
+  # Check markdown file has actual table rows (not just headers)
+  local file="$1"
+  local min_rows="${2:-3}"
+  if [[ ! -f "$file" ]]; then
+    error "Missing file: $file"
+    return 1
+  fi
+  # Count lines with | that aren't just headers (contain actual data)
+  local row_count=$(grep -E '^\|[^-]+\|' "$file" | grep -v '^\|[-:]+\|' | wc -l)
+  if [[ $row_count -lt $min_rows ]]; then
+    error "File $file has only $row_count table rows (expected at least $min_rows)"
+    return 1
+  fi
+  return 0
+}
+
+check_section_content() {
+  # Check a markdown section has actual content (not just header)
+  local file="$1"
+  local section="$2"
+  local min_chars="${3:-50}"
+  if [[ ! -f "$file" ]]; then
+    error "Missing file: $file"
+    return 1
+  fi
+  # Extract section content (from header to next header or EOF)
+  local content=$(awk "/^#+ .*${section}/,/^#+ /" "$file" | head -n -1)
+  local char_count=$(echo "$content" | wc -c)
+  if [[ $char_count -lt $min_chars ]]; then
+    error "Section '$section' in $file has only $char_count chars (expected at least $min_chars)"
+    return 1
+  fi
+  return 0
+}
+
 # Detect stack
 detect_stack() {
   if [[ -f "package.json" ]]; then
@@ -357,33 +409,48 @@ case "$PHASE" in
   1)
     echo "Checking Phase 1 artifacts..."
     
-    # CONTEXT.md populated
+    # CONTEXT.md populated with actual terms
     check_file "CONTEXT.md" || true
     if check_file "CONTEXT.md"; then
       if ! grep -q "## Terms" CONTEXT.md; then
         error "CONTEXT.md missing Terms section"
       fi
-      # Check it has more than just the template
-      if [[ $(wc -l < CONTEXT.md) -lt 10 ]]; then
-        error "CONTEXT.md appears to be just the template"
-      fi
+      # Check it has actual content (not just template)
+      check_meaningful_content "CONTEXT.md" 30 || true
+      # Check it has actual term definitions (table rows)
+      check_table_rows "CONTEXT.md" 5 || true
     fi
     
-    # ARCHITECTURE.md has required sections
+    # ARCHITECTURE.md has required sections WITH CONTENT
     check_file "docs/ARCHITECTURE.md" || true
     if check_file "docs/ARCHITECTURE.md"; then
+      # Check each required section exists and has meaningful content
       for section in "Stack" "Topology" "API" "UI/UX" "Compliance" "Cost" "Documentation"; do
         if ! grep -qi "$section" docs/ARCHITECTURE.md; then
           error "docs/ARCHITECTURE.md missing $section section"
+        else
+          # Verify section has actual content (not just header)
+          check_section_content "docs/ARCHITECTURE.md" "$section" 100 || true
         fi
       done
+      # Overall file should be substantial
+      check_meaningful_content "docs/ARCHITECTURE.md" 100 || true
     fi
     
-    # ADRs exist
+    # ADRs exist AND have actual content
     check_dir "docs/adr" || true
     if check_dir "docs/adr"; then
-      if [[ -z "$(ls -A docs/adr 2>/dev/null)" ]]; then
+      adr_count=$(find docs/adr -name "*.md" -type f 2>/dev/null | wc -l)
+      if [[ $adr_count -eq 0 ]]; then
         error "docs/adr/ is empty (no ADRs)"
+      else
+        # Verify at least one ADR has substantial content
+        for adr in docs/adr/*.md; do
+          if [[ -f "$adr" ]]; then
+            check_meaningful_content "$adr" 20 || true
+            break  # Just check one to prove they're not empty templates
+          fi
+        done
       fi
     fi
     ;;
@@ -391,15 +458,31 @@ case "$PHASE" in
   2)
     echo "Checking Phase 2 artifacts..."
     
-    # ISSUES.md exists
+    # ISSUES.md exists AND has actual issues
     check_file "docs/ISSUES.md" || true
     check_nonempty "docs/ISSUES.md" || true
+    if check_file "docs/ISSUES.md"; then
+      check_meaningful_content "docs/ISSUES.md" 30 || true
+      # Check for actual issue entries (look for issue markers or numbered items)
+      if ! grep -qE "(^#.*[Ii]ssue|^##.*[Ii]ssue|^[0-9]+\.)" docs/ISSUES.md; then
+        error "docs/ISSUES.md appears to be just a template (no actual issues)"
+      fi
+    fi
     
-    # Issues in .scratch/
+    # Issues in .scratch/ with actual content
     check_dir ".scratch" || true
     if check_dir ".scratch"; then
-      if [[ -z "$(find .scratch -name 'issue.md' 2>/dev/null)" ]]; then
+      issue_files=$(find .scratch -name "issue.md" -type f 2>/dev/null | wc -l)
+      if [[ $issue_files -eq 0 ]]; then
         error "No issue.md files found in .scratch/"
+      else
+        # Verify at least one issue file has substantial content
+        for issue in .scratch/*/issue.md; do
+          if [[ -f "$issue" ]]; then
+            check_meaningful_content "$issue" 15 || true
+            break
+          fi
+        done
       fi
     fi
     
@@ -408,6 +491,10 @@ case "$PHASE" in
       check_dir "graphify-out" || true
       check_file "graphify-out/graph.json" || true
       check_file "graphify-out/GRAPH_REPORT.md" || true
+      # Verify graph report has actual content
+      if check_file "graphify-out/GRAPH_REPORT.md"; then
+        check_meaningful_content "graphify-out/GRAPH_REPORT.md" 30 || true
+      fi
     fi
     ;;
     
@@ -421,20 +508,31 @@ case "$PHASE" in
     run_stack_cmd "lint" "Linter"
     run_stack_cmd "typecheck" "Typechecker"
     
-    # CHANGELOG updated
+    # CHANGELOG updated with actual entries
     check_file "CHANGELOG.md" || true
     if check_file "CHANGELOG.md"; then
       # Check for entries beyond [Unreleased]
       if ! grep -q "### Added\|### Changed\|### Fixed" CHANGELOG.md; then
         error "CHANGELOG.md has no entries"
       fi
+      # Verify CHANGELOG has substantial content
+      check_meaningful_content "CHANGELOG.md" 15 || true
     fi
     
-    # Agent contracts
+    # Agent contracts exist AND have actual content
     check_dir "docs/agents/contracts" || true
     if check_dir "docs/agents/contracts"; then
-      if [[ -z "$(ls -A docs/agents/contracts 2>/dev/null)" ]]; then
+      contract_count=$(find docs/agents/contracts -type f 2>/dev/null | wc -l)
+      if [[ $contract_count -eq 0 ]]; then
         error "docs/agents/contracts/ is empty"
+      else
+        # Verify at least one contract has substantial content
+        for contract in docs/agents/contracts/*; do
+          if [[ -f "$contract" ]]; then
+            check_meaningful_content "$contract" 20 || true
+            break
+          fi
+        done
       fi
     fi
     
@@ -444,42 +542,96 @@ case "$PHASE" in
       if ! git log --oneline | grep -q "issue-"; then
         error "No issue branches found in git log"
       fi
+      # Verify there are multiple commits (not just one)
+      commit_count=$(git rev-list --count HEAD 2>/dev/null || echo "0")
+      if [[ $commit_count -lt 3 ]]; then
+        error "Only $commit_count commits found (expected at least 3 for Phase 3)"
+      fi
     fi
     ;;
     
   4)
     echo "Checking Phase 4 artifacts..."
     
-    # CI config (check for any CI system)
-    if [[ ! -d ".github/workflows" ]] && [[ ! -f ".gitlab-ci.yml" ]] && [[ ! -f "azure-pipelines.yml" ]] && [[ ! -f "bitbucket-pipelines.yml" ]] && [[ ! -f ".circleci/config.yml" ]] && [[ ! -f "Jenkinsfile" ]]; then
+    # CI config (check for any CI system) with actual content
+    ci_found=false
+    for ci_file in ".github/workflows" ".gitlab-ci.yml" "azure-pipelines.yml" "bitbucket-pipelines.yml" ".circleci/config.yml" "Jenkinsfile"; do
+      if [[ -d "$ci_file" ]] || [[ -f "$ci_file" ]]; then
+        ci_found=true
+        # If it's a directory (like .github/workflows), check for actual workflow files
+        if [[ -d "$ci_file" ]]; then
+          workflow_count=$(find "$ci_file" -name "*.yml" -o -name "*.yaml" 2>/dev/null | wc -l)
+          if [[ $workflow_count -eq 0 ]]; then
+            error "CI directory $ci_file exists but has no workflow files"
+          fi
+        else
+          check_meaningful_content "$ci_file" 15 || true
+        fi
+        break
+      fi
+    done
+    if [[ "$ci_found" == "false" ]]; then
       error "No CI configuration found"
     fi
     
-    # Deployment artifacts (check for any deployment config)
-    if [[ ! -f "Dockerfile" ]] && [[ ! -f "docker-compose.yml" ]] && [[ ! -f "serverless.yml" ]] && [[ ! -f "serverless.yaml" ]] && [[ ! -f "wrangler.toml" ]] && [[ ! -f "wrangler.json" ]] && [[ ! -f "vercel.json" ]] && [[ ! -f "netlify.toml" ]] && [[ ! -f "fly.toml" ]] && [[ ! -f "railway.json" ]] && [[ ! -f "Procfile" ]] && [[ ! -f "app.yaml" ]]; then
+    # Deployment artifacts (check for any deployment config) with actual content
+    deploy_found=false
+    for deploy_file in "Dockerfile" "docker-compose.yml" "serverless.yml" "serverless.yaml" "wrangler.toml" "wrangler.json" "vercel.json" "netlify.toml" "fly.toml" "railway.json" "Procfile" "app.yaml"; do
+      if [[ -f "$deploy_file" ]]; then
+        deploy_found=true
+        check_meaningful_content "$deploy_file" 10 || true
+        break
+      fi
+    done
+    if [[ "$deploy_found" == "false" ]]; then
       error "No deployment artifacts found"
     fi
     
-    # DEPLOYMENT.md
+    # DEPLOYMENT.md with actual content
     check_file "docs/DEPLOYMENT.md" || true
     check_nonempty "docs/DEPLOYMENT.md" || true
+    if check_file "docs/DEPLOYMENT.md"; then
+      check_meaningful_content "docs/DEPLOYMENT.md" 30 || true
+      # Check for key deployment sections
+      if ! grep -qi "deploy\|setup\|install" docs/DEPLOYMENT.md; then
+        error "docs/DEPLOYMENT.md missing deployment instructions"
+      fi
+    fi
     ;;
     
   5)
     echo "Checking Phase 5 artifacts..."
     
-    # Schemas documented
+    # Schemas documented with actual content
     check_dir "docs/agents/schemas" || true
     if check_dir "docs/agents/schemas"; then
-      if [[ -z "$(ls -A docs/agents/schemas 2>/dev/null)" ]]; then
+      schema_count=$(find docs/agents/schemas -type f 2>/dev/null | wc -l)
+      if [[ $schema_count -eq 0 ]]; then
         error "docs/agents/schemas/ is empty"
+      else
+        # Verify at least one schema has substantial content
+        for schema in docs/agents/schemas/*; do
+          if [[ -f "$schema" ]]; then
+            check_meaningful_content "$schema" 20 || true
+            break
+          fi
+        done
       fi
     fi
     
-    # Auth flow documented
+    # Auth flow documented with detail
     if check_file "docs/ARCHITECTURE.md"; then
       if ! grep -qi "auth" docs/ARCHITECTURE.md; then
         error "docs/ARCHITECTURE.md doesn't mention auth flow"
+      fi
+      # Verify auth section has substantial content (not just a mention)
+      check_section_content "docs/ARCHITECTURE.md" "auth\|Auth\|AUTH" 100 || true
+    fi
+    
+    # Verify validation/security patterns are documented
+    if check_file "docs/ARCHITECTURE.md"; then
+      if ! grep -qi "validat\|secur\|rate.limit\|idempoten" docs/ARCHITECTURE.md; then
+        error "docs/ARCHITECTURE.md doesn't document validation/security patterns"
       fi
     fi
     ;;
@@ -487,19 +639,37 @@ case "$PHASE" in
   6)
     echo "Checking Phase 6 artifacts..."
     
-    # Runbooks
+    # Runbooks exist with actual content
     check_dir "docs/runbooks" || true
     if check_dir "docs/runbooks"; then
-      if [[ -z "$(ls -A docs/runbooks 2>/dev/null)" ]]; then
-        error "docs/runbooks/ is empty"
+      runbook_count=$(find docs/runbooks -name "*.md" -type f 2>/dev/null | wc -l)
+      if [[ $runbook_count -eq 0 ]]; then
+        error "docs/runbooks/ is empty (no runbooks)"
+      else
+        # Verify at least one runbook has substantial content
+        for runbook in docs/runbooks/*.md; do
+          if [[ -f "$runbook" ]]; then
+            check_meaningful_content "$runbook" 20 || true
+            # Check for key runbook sections
+            if ! grep -qi "symptom\|cause\|resolution\|escalat" "$runbook"; then
+              error "Runbook $runbook missing key sections (symptom/cause/resolution)"
+            fi
+            break
+          fi
+        done
       fi
     fi
     
-    # DEPLOYMENT.md finalized
+    # DEPLOYMENT.md finalized with operational content
     check_file "docs/DEPLOYMENT.md" || true
     if check_file "docs/DEPLOYMENT.md"; then
+      check_meaningful_content "docs/DEPLOYMENT.md" 40 || true
       if ! grep -qi "runbook" docs/DEPLOYMENT.md; then
         error "docs/DEPLOYMENT.md doesn't reference runbooks"
+      fi
+      # Check for operational checklist
+      if ! grep -qi "checklist\|operational\|monitoring\|alert" docs/DEPLOYMENT.md; then
+        error "docs/DEPLOYMENT.md missing operational checklist"
       fi
     fi
     ;;
@@ -507,21 +677,41 @@ case "$PHASE" in
   7)
     echo "Checking Phase 7 artifacts..."
     
-    # Graphify rebuilt
+    # Graphify rebuilt with actual content
     check_dir "graphify-out" || true
     check_file "graphify-out/graph.json" || true
     check_file "graphify-out/GRAPH_REPORT.md" || true
+    if check_file "graphify-out/GRAPH_REPORT.md"; then
+      check_meaningful_content "graphify-out/GRAPH_REPORT.md" 50 || true
+      # Check for key report sections
+      if ! grep -qi "god node\|community\|surpris" graphify-out/GRAPH_REPORT.md; then
+        error "GRAPH_REPORT.md missing key analysis sections"
+      fi
+    fi
     
-    # SESSION.md complete
+    # SESSION.md complete with proper status
     check_file "docs/SESSION.md" || true
     if check_file "docs/SESSION.md"; then
       if ! grep -q "status: complete" docs/SESSION.md; then
         error "docs/SESSION.md doesn't have status: complete"
       fi
+      # Verify SESSION.md has substantial tracking content
+      check_meaningful_content "docs/SESSION.md" 50 || true
+      # Check for phase tracking
+      if ! grep -q "phase: 7" docs/SESSION.md; then
+        error "docs/SESSION.md doesn't show phase: 7"
+      fi
     fi
     
     # Dependency audit
     run_stack_cmd "audit" "Dependency audit"
+    
+    # Verify code quality audit was performed (check for audit artifacts)
+    if check_file "docs/SESSION.md"; then
+      if ! grep -qi "audit\|review\|quality" docs/SESSION.md; then
+        error "docs/SESSION.md doesn't document audit activities"
+      fi
+    fi
     ;;
     
   *)

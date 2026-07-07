@@ -37,6 +37,58 @@ additional_skills:
 Step-by-step recipe for turning an idea into a working, live platform. Each
 phase must pass a quality gate before moving on.
 
+---
+
+## ⚠️ MANDATORY COMPLIANCE — READ THIS FIRST ⚠️
+
+**YOU MUST NOT SKIP STEPS. YOU MUST NOT SELF-REPORT COMPLETION. YOU MUST RUN VALIDATION SCRIPTS.**
+
+This skill is **mechanically enforced**, not self-enforced. Your claims about
+what you "did" or "completed" are **insufficient proof**. Only artifacts that
+pass `scripts/validate-gate.sh` count as complete.
+
+### Non-Negotiable Rules:
+
+1. **Copy the phase checklist** from `references/phase-checklists.md` into
+   `docs/SESSION.md` BEFORE starting the phase. No exceptions.
+
+2. **Tick a step ONLY after** you have produced the artifact AND verified it
+   exists. Do not tick based on intent. Do not tick based on partial work.
+
+3. **Run `scripts/validate-gate.sh <phase>`** at the end of every phase.
+   If it fails, you have NOT completed the phase. Fix the issues and re-run.
+   Do not proceed to the next phase until the script exits 0.
+
+4. **Do not claim "gate passed"** unless `validate-gate.sh` actually exited 0.
+   If you claim the gate passed when the script failed, that is a violation.
+
+5. **Do not skip delegated skills.** If a phase requires `/tdd`, `/grill-me`,
+   `/to-issues`, etc., you MUST run them. Skipping is not allowed.
+
+6. **Do not fabricate verification.** If you say "I verified the tool exists"
+   or "I checked the registry," you must have actually done it. If you didn't,
+   that is a violation.
+
+7. **Do not proceed without user confirmation** at phase gates. Wait for
+   explicit "Confirm CONTEXT.md" and "Confirm ARCHITECTURE.md" before advancing
+   past Phase 1.
+
+### Consequences of Violations:
+
+- If you skip steps, the user will audit your work and find missing artifacts.
+- If you self-report without running validation, the validation script will fail.
+- If you fabricate verification, you will be caught when artifacts don't exist.
+
+**This is not optional. This is not a suggestion. This is the enforcement mechanism.**
+
+See `references/enforcement-summary.md` for details on what is mechanically
+enforced vs. self-enforced.
+
+See `references/directives.md` §10 (Checklist Compliance), §11 (Anti-Hallucination),
+and §12 (Gate Validation Failures) for the full rules.
+
+---
+
 ## File Index
 
 **When you need to...** | **Read this file**
@@ -122,7 +174,10 @@ Browse reference files | `references/README.md` (one-line summary of each)
 - `templates/README.md` — what each template is for
 - `scripts/README.md` — what each script does
 
-**Then follow the checklist.** Each step tells you what to do and what artifact to produce. When you're done, run `scripts/validate-gate.sh <phase>` to verify.
+**Then follow the checklist.** Each step tells you what to do and what artifact
+to produce. When you're done, you MUST run `scripts/validate-gate.sh <phase>`
+and it MUST exit 0. Do not proceed to the next phase until validation passes.
+Do not claim the gate passed unless the script actually succeeded.
 
 ## Invocation
 
@@ -135,12 +190,16 @@ Read `docs/SESSION.md`. Branch on what you find:
 - **Phase < 7** → resume. Pick up at the recorded phase.
 - **Phase 7 complete** → platform is live. Use the **Feature Loop**.
 
-**Phase checklists are mandatory.** Before starting any phase, copy its
-checklist from `references/phase-checklists.md` into `docs/SESSION.md`.
-Tick each step AFTER completing it and verifying its artifact. Do NOT
-declare a gate passed until every step is ticked or marked N/A with
-reason. This is the primary enforcement mechanism — if a step is not
-ticked, it was not done.
+**Phase checklists are mandatory and non-negotiable.** Before starting any
+phase, copy its checklist from `references/phase-checklists.md` into
+`docs/SESSION.md`. Tick each step ONLY AFTER completing it AND verifying its
+artifact exists. Do NOT declare a gate passed until every step is ticked or
+marked N/A with reason AND `scripts/validate-gate.sh <phase>` exits 0.
+
+**This is the primary enforcement mechanism.** If a step is not ticked, it was
+not done. If the validation script fails, the gate did not pass — regardless
+of what you claim. Self-reporting is not sufficient. Mechanical verification
+is required.
 
 State tracked across two files (formats: see `references/state-files.md`):
 
@@ -242,8 +301,10 @@ force-push to main, runs full test suite). Create blank `CONTEXT.md`
 
 **Gate:** Linter and typechecker exit `0`. README is non-empty (project name
 + one-liner). CHANGELOG.md follows `keepachangelog.com` format. Git hooks
-installed (pre-commit, commit-msg, pre-push). Run `scripts/validate-gate.sh 0`
-to verify all Phase 0 artifacts.
+installed (pre-commit, commit-msg, pre-push). **YOU MUST RUN**
+`scripts/validate-gate.sh 0` **and it MUST exit 0.** Do not claim the gate
+passed unless the script actually succeeded. If it fails, fix the issues and
+re-run. Do not proceed to Phase 1 until validation passes.
 
 ---
 
@@ -275,7 +336,10 @@ Present `CONTEXT.md` and `docs/ARCHITECTURE.md` for review.
 **Gate:** User writes `Confirm CONTEXT.md` and `Confirm ARCHITECTURE.md`.
 ARCHITECTURE.md includes documentation posture: who writes what, where agent
 docs live (contracts, schemas, graph), where human docs live (README,
-CHANGELOG, ADRs). Run `scripts/validate-gate.sh 1` to verify all Phase 1 artifacts.
+CHANGELOG, ADRs). **YOU MUST RUN** `scripts/validate-gate.sh 1` **and it MUST
+exit 0.** Do not claim the gate passed unless the script actually succeeded.
+If it fails, fix the issues and re-run. Do not proceed to Phase 2 until
+validation passes.
 
 Full details: `references/phases.md#phase-1`.
 
@@ -298,7 +362,9 @@ dependency graph to `docs/ISSUES.md` (template: `templates/ISSUES.md`).
 **Gate:** Every issue is a vertical slice, self-contained, agent-ready. Each
 issue includes a `Docs:` field listing what documentation it will produce
 or update (README section, CHANGELOG entry, agent contract, ADR, etc.).
-Run `scripts/validate-gate.sh 2` to verify all Phase 2 artifacts.
+**YOU MUST RUN** `scripts/validate-gate.sh 2` **and it MUST exit 0.** Do not
+claim the gate passed unless the script actually succeeded. If it fails, fix
+the issues and re-run. Do not proceed to Phase 3 until validation passes.
 
 ---
 
@@ -334,8 +400,10 @@ for business logic, integration for boundaries, e2e for critical journeys.
 **Gate:** All backlog issues merged. Full test suite passes. No regressions.
 Linter + typechecker exit 0. Every public interface has docstrings or typed
 signatures (agent-facing). CHANGELOG updated per issue. API contracts in
-`docs/agents/contracts/` match implementation. Run `scripts/validate-gate.sh 3`
-to verify all Phase 3 artifacts.
+`docs/agents/contracts/` match implementation. **YOU MUST RUN**
+`scripts/validate-gate.sh 3` **and it MUST exit 0.** Do not claim the gate
+passed unless the script actually succeeded. If it fails, fix the issues and
+re-run. Do not proceed to Phase 4 until validation passes.
 
 ---
 
@@ -353,7 +421,9 @@ flags if declared in Phase 1.
 Data survives a restart cycle. CI pipeline passes all stages. Preview
 deployments work (if applicable). README has one-command setup + deploy
 instructions that succeed on a clean clone. DEPLOYMENT.md matches deployed
-artifacts. Run `scripts/validate-gate.sh 4` to verify all Phase 4 artifacts.
+artifacts. **YOU MUST RUN** `scripts/validate-gate.sh 4` **and it MUST exit 0.**
+Do not claim the gate passed unless the script actually succeeded. If it fails,
+fix the issues and re-run. Do not proceed to Phase 5 until validation passes.
 
 ---
 
@@ -372,7 +442,10 @@ PII hygiene).
 prevent double-processing. All endpoints rate-limited (429). Zero 500s from
 fuzzing. Migration cycle exits `0`. Compliance checklist verified. Data model
 documented in `docs/agents/schemas/`. Auth flow documented in
-`docs/ARCHITECTURE.md` (or an ADR). Run `scripts/validate-gate.sh 5` to verify all Phase 5 artifacts.
+`docs/ARCHITECTURE.md` (or an ADR). **YOU MUST RUN** `scripts/validate-gate.sh 5`
+**and it MUST exit 0.** Do not claim the gate passed unless the script actually
+succeeded. If it fails, fix the issues and re-run. Do not proceed to Phase 6
+until validation passes.
 
 ---
 
@@ -394,7 +467,10 @@ Full details in `references/operations.md`.
 dashboard. Load test passes. Shutdown test passes. Backup/restore succeeds.
 Alerts configured. Every alert has a runbook in `docs/runbooks/`.
 DEPLOYMENT.md is finalized (single-command launch, env setup, operational
-checklist all verified). Run `scripts/validate-gate.sh 6` to verify all Phase 6 artifacts.
+checklist all verified). **YOU MUST RUN** `scripts/validate-gate.sh 6` **and it
+MUST exit 0.** Do not claim the gate passed unless the script actually
+succeeded. If it fails, fix the issues and re-run. Do not proceed to Phase 7
+until validation passes.
 
 ---
 
@@ -438,7 +514,10 @@ for dead code and duplication resolved or filed. Documentation audit passes
 (no gaps). Performance audit confirms no regressions. Compliance audit passes.
 UX audit checklist passes (all items checked, failures filed as issues).
 Every ADR honored or explicitly superseded. Write `status: complete` to
-`docs/SESSION.md`. Run `scripts/validate-gate.sh 7` to verify all Phase 7 artifacts.
+`docs/SESSION.md`. **YOU MUST RUN** `scripts/validate-gate.sh 7` **and it MUST
+exit 0.** Do not claim the gate passed unless the script actually succeeded.
+If it fails, fix the issues and re-run. Do not declare the platform complete
+until validation passes.
 
 ---
 
