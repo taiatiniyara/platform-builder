@@ -21,11 +21,12 @@ Create blank `CONTEXT.md` (template: `templates/CONTEXT.md`) and
 `docs/ARCHITECTURE.md` (template: `templates/ARCHITECTURE.md`).
 
 **Gate:** Linter and typechecker exit `0`. README is non-empty (project name
-+ one-liner). CHANGELOG.md follows `keepachangelog.com` format. If the stack
-supports a test runner without source files, run it — otherwise skip.
-**Verification:** re-read Phase 0 checklist in `docs/SESSION.md`. Confirm
-every ticked step has a corresponding artifact. If any artifact is missing,
-complete the step before advancing.
++ one-liner). CHANGELOG.md follows `keepachangelog.com` format. Git hooks
+installed (pre-commit, commit-msg, pre-push). If the stack supports a test
+runner without source files, run it — otherwise skip.
+**Verification:** run `scripts/validate-gate.sh 0`. Re-read Phase 0 checklist
+in `docs/SESSION.md`. Confirm every ticked step has a corresponding artifact.
+If any artifact is missing, complete the step before advancing.
 
 ---
 
@@ -45,11 +46,23 @@ After the session, extract the architectural decisions that emerged and
 record them in `docs/ARCHITECTURE.md`:
 
 - **Stack choices** — language, framework, data store, auth provider,
-  hosting target. Each with rationale.
+  hosting target. Each with rationale. For each choice, the agent MUST
+  suggest 2-3 concrete tools with trade-offs (see directive §5). Do not
+  say "choose whatever works" — research current options and present
+  specific recommendations. Verify each suggested tool is current (check
+  website, registry) before presenting.
 - **System topology** — what talks to what, across which boundaries.
   Include event-driven patterns if applicable (message queues, pub/sub,
   webhooks, async processing). Decide if the domain needs events or
   synchronous calls are sufficient — document the rationale.
+  If the domain is complex (3+ sub-domains), apply `references/ddd.md`
+  to identify bounded contexts and context map. If building microservices,
+  apply `references/microservices.md` for service decomposition. If 3+
+  teams will work on the platform, apply `references/multi-team.md` for
+  team topology and ownership. If users are global, apply
+  `references/multi-region.md` for deployment topology. If building mobile
+  apps, apply `references/mobile.md` for platform strategy, architecture
+  patterns, and device constraints.
 - **API or IPC contracts** — route shapes and payloads (web), module
   interfaces, event contracts, or CLI signatures (everything else).
   Apply the standards in `references/api-design.md` (versioning,
@@ -88,11 +101,11 @@ Present `CONTEXT.md` and `docs/ARCHITECTURE.md` for review.
 ARCHITECTURE.md includes documentation posture: who writes what, where agent
 docs live (contracts, schemas, graph), where human docs live (README,
 CHANGELOG, ADRs).
-**Verification:** re-read Phase 1 checklist in `docs/SESSION.md`. Confirm
-every ticked step has a corresponding artifact. Verify ARCHITECTURE.md
-contains all required sections (stack, topology, API, UI/UX, compliance,
-cost, documentation). If any artifact is missing, complete the step before
-advancing.
+**Verification:** run `scripts/validate-gate.sh 1`. Re-read Phase 1 checklist
+in `docs/SESSION.md`. Confirm every ticked step has a corresponding artifact.
+Verify ARCHITECTURE.md contains all required sections (stack, topology, API,
+UI/UX, compliance, cost, documentation). If any artifact is missing, complete
+the step before advancing.
 
 ---
 
@@ -109,10 +122,10 @@ field. Save the dependency graph to `docs/ISSUES.md`. Publish each issue to
 `.scratch/<feature-slug>/issue.md` (or the issue tracker if configured).
 
 **Gate:** Every issue is a vertical slice, self-contained, agent-ready.
-**Verification:** re-read Phase 2 checklist in `docs/SESSION.md`. Confirm
-every ticked step has a corresponding artifact. Verify `docs/ISSUES.md`
-exists and contains the dependency graph. If any artifact is missing,
-complete the step before advancing.
+**Verification:** run `scripts/validate-gate.sh 2`. Re-read Phase 2 checklist
+in `docs/SESSION.md`. Confirm every ticked step has a corresponding artifact.
+Verify `docs/ISSUES.md` exists and contains the dependency graph. If any
+artifact is missing, complete the step before advancing.
 
 ---
 
@@ -150,18 +163,25 @@ For each issue in dependency order:
    every new public interface has a docstring or typed signature. API
    contracts in `docs/agents/contracts/` match implementation. CHANGELOG
    gets an entry.
-8. Summarise trajectory into `docs/SESSION.md`.
-9. Squash-merge to `main` on 100% pass. Delete branch.
+8. **Resilience (if microservices):** apply `references/microservices.md`
+   resilience patterns (circuit breaker, retry, timeout, bulkhead, fallback).
+9. **Observability (if distributed):** apply `references/observability-scale.md`
+   to instrument services with OpenTelemetry (metrics, logs, traces).
+10. Summarise trajectory into `docs/SESSION.md`.
+11. Squash-merge to `main` on 100% pass. Use conventional commit message:
+    `feat(<scope>): <description>` or `fix(<scope>): <description>`.
+    Include `Closes #<n>` in the footer. Delete branch.
 
 **Gate:** All backlog issues merged. Full test suite passes (unit,
 integration, e2e). No regressions. Linter + typechecker exit 0. Every
 public interface has docstrings or typed signatures (agent-facing).
 CHANGELOG updated per issue. API contracts in `docs/agents/contracts/`
 match implementation.
-**Verification:** re-read Phase 3 checklist in `docs/SESSION.md`. Confirm
-every ticked step has a corresponding artifact. Run `git log` to verify
-all issues merged. Run test suite, linter, typechecker to verify they
-exit 0. If any artifact is missing, complete the step before advancing.
+**Verification:** run `scripts/validate-gate.sh 3`. Re-read Phase 3 checklist
+in `docs/SESSION.md`. Confirm every ticked step has a corresponding artifact.
+Run `git log` to verify all issues merged. Run test suite, linter, typechecker
+to verify they exit 0. If any artifact is missing, complete the step before
+advancing.
 
 ---
 
@@ -213,13 +233,46 @@ Single-command launch for the declared target. Verify liveness. Verify
 data survives a restart cycle. If Phase 1 declared a cost model, verify
 the deployment matches the expected cost tier; set budget alerts.
 
+### Platform Engineering (if 3+ teams)
+
+If the platform serves multiple teams, apply `references/platform-engineering.md`:
+build golden paths (service, database, frontend templates), set up self-service
+portal, create service catalog, standardize CI/CD pipelines.
+
+### Security Setup (if sensitive data)
+
+If handling sensitive data or compliance requirements, apply
+`references/advanced-security.md`: implement authentication/authorization,
+secrets management (Vault, AWS Secrets Manager), encryption (at rest, in
+transit), network security (WAF, DDoS protection).
+
+### Observability Setup
+
+Apply `references/observability-scale.md`: instrument all services with
+OpenTelemetry (metrics, logs, traces), set up metrics collection (Prometheus),
+log aggregation (Loki, ELK), distributed tracing (Jaeger, Zipkin). Define
+SLOs per service.
+
+### Multi-Region Setup (if global)
+
+If users are distributed globally, apply `references/multi-region.md`:
+choose deployment topology (active-passive, active-active), configure data
+replication, set up traffic routing (DNS, load balancer), configure CDN.
+
+### Mobile Setup (if building mobile apps)
+
+If building mobile apps, apply `references/mobile.md`: set up CI/CD
+(Fastlane, Bitrise, Codemagic), configure beta testing (TestFlight,
+Internal Testing), prepare app store metadata (screenshots, description),
+configure push notifications (APNs, FCM).
+
 **Gate:** Single-command launch succeeds. Liveness signal returns success.
 Data survives a restart cycle. Preview deployments work (if applicable).
 CI pipeline passes all stages.
-**Verification:** re-read Phase 4 checklist in `docs/SESSION.md`. Confirm
-every ticked step has a corresponding artifact. Test single-command launch
-on clean clone. Verify health check returns 200. If any artifact is missing,
-complete the step before advancing.
+**Verification:** run `scripts/validate-gate.sh 4`. Re-read Phase 4 checklist
+in `docs/SESSION.md`. Confirm every ticked step has a corresponding artifact.
+Test single-command launch on clean clone. Verify health check returns 200.
+If any artifact is missing, complete the step before advancing.
 
 ---
 
@@ -248,7 +301,10 @@ Write `phase: 5` to `docs/SESSION.md`.
 - **Auth:** enforce at the boundary — reject unauthenticated before
   business logic. Rate-limit auth endpoints against brute-force. Enable
   CSRF protection for cookie-based sessions. Verify tokens expire and renew
-  correctly.
+  correctly. For service-to-service auth, apply `references/advanced-security.md`
+  (mTLS, JWT, API keys). For secrets management, use a secrets manager
+  (Vault, AWS Secrets Manager) — never store secrets in files or environment
+  variables.
 - **Compliance:** if GDPR applies per Phase 1 declaration, verify consent
   mechanism, data export path, data deletion path per
   `references/compliance.md`. Confirm no PII in application logs or error
@@ -260,10 +316,10 @@ Write `phase: 5` to `docs/SESSION.md`.
 structured error body. Rate-limited (429) on all endpoints. Idempotency
 keys prevent double-processing. Fuzz input returns zero 500s. Migration
 up/down/up cycle exits `0`. Compliance checklist items verified.
-**Verification:** re-read Phase 5 checklist in `docs/SESSION.md`. Confirm
-every ticked step has a corresponding artifact. Test unauthenticated,
-malformed, and fuzz inputs. Verify migration cycle. If any artifact is
-missing, complete the step before advancing.
+**Verification:** run `scripts/validate-gate.sh 5`. Re-read Phase 5 checklist
+in `docs/SESSION.md`. Confirm every ticked step has a corresponding artifact.
+Test unauthenticated, malformed, and fuzz inputs. Verify migration cycle.
+If any artifact is missing, complete the step before advancing.
 
 ---
 
@@ -277,7 +333,8 @@ relevant sections based on what was declared in `docs/ARCHITECTURE.md`.
 ### Telemetry & Monitoring
 
 - **Structured logs:** correlation IDs on every request. Error tracking
-  wired up.
+  wired up. Apply `references/observability-scale.md` for distributed
+  tracing (OpenTelemetry) and log correlation.
 - **Metrics:** RED method (Rate, Errors, Duration) on every endpoint.
   Application-level metrics for queues, connection pools, caches, auth
   events, and background jobs.
@@ -321,18 +378,32 @@ per alert in `docs/runbooks/` (template: `templates/runbook.md`).
 ### Cost Review
 
 Compare actual month-1 costs against the Phase 1 estimate. Clean up unused
-resources. Right-size based on actual utilization.
+resources. Right-size based on actual utilization. Apply `references/finops.md`
+for cost optimization strategies (right-sizing, reserved instances, spot
+instances, auto-scaling, storage optimization).
+
+### Chaos Engineering (if microservices)
+
+If the platform has multiple services, apply `references/chaos-engineering.md`
+to test resilience: run chaos experiments in staging, plan game days, automate
+experiments in CI/CD.
+
+### Multi-Team Coordination (if 3+ teams)
+
+If multiple teams work on the platform, apply `references/multi-team.md` to
+coordinate: define ownership model, set up RFC process, manage cross-team
+dependencies, establish governance.
 
 **Gate:** Health check confirms store connectivity. Metrics visible on
 dashboard. Load test passes (zero 500s, p95 within threshold). Shutdown
 test passes — zero leaked resources. Backup/restore succeeds. Alerts
 configured and routing to a real destination. Every alert has a runbook
 in `docs/runbooks/`. DEPLOYMENT.md is finalized.
-**Verification:** re-read Phase 6 checklist in `docs/SESSION.md`. Confirm
-every ticked step has a corresponding artifact. Verify dashboard shows
-metrics. Run load test, shutdown test, backup/restore. Check alerts route
-to real destination. If any artifact is missing, complete the step before
-advancing.
+**Verification:** run `scripts/validate-gate.sh 6`. Re-read Phase 6 checklist
+in `docs/SESSION.md`. Confirm every ticked step has a corresponding artifact.
+Verify dashboard shows metrics. Run load test, shutdown test, backup/restore.
+Check alerts route to real destination. If any artifact is missing, complete
+the step before advancing.
 
 ---
 
@@ -376,6 +447,12 @@ If Phase 1 declared i18n support: verify no hardcoded strings remain in
 components, confirm RTL layout works, check date/number/currency formatting
 uses locale-aware APIs.
 
+### FinOps Audit (if cloud spend >$5K/month)
+
+Apply `references/finops.md`: review cost allocation tags, check for unused
+resources, right-size over-provisioned resources, review reserved instance
+coverage, verify budget alerts are configured.
+
 ### Structural Integrity
 
 Flag structural drift — code that contradicts the blueprint. Fix or issue
@@ -397,7 +474,8 @@ dead code and duplication resolved or filed. Performance audit confirms no
 regressions. Compliance audit passes. UX audit checklist passes (all items
 checked, failures filed as issues). Every ADR honored or explicitly
 superseded. Write `status: complete` to `docs/SESSION.md`.
-**Verification:** re-read Phase 7 checklist in `docs/SESSION.md`. Confirm
-every ticked step has a corresponding artifact. Run `npm audit` (or
-equivalent) to verify zero critical CVEs. Verify all audits completed.
-If any artifact is missing, complete the step before advancing.
+**Verification:** run `scripts/validate-gate.sh 7`. Re-read Phase 7 checklist
+in `docs/SESSION.md`. Confirm every ticked step has a corresponding artifact.
+Run `npm audit` (or equivalent) to verify zero critical CVEs. Verify all
+audits completed. If any artifact is missing, complete the step before
+advancing.

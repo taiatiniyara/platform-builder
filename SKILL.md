@@ -37,6 +37,93 @@ additional_skills:
 Step-by-step recipe for turning an idea into a working, live platform. Each
 phase must pass a quality gate before moving on.
 
+## File Index
+
+**When you need to...** | **Read this file**
+------------------------|------------------
+Know what to do right now | `docs/SESSION.md` (in the project)
+Understand the domain | `CONTEXT.md` (in the project)
+Understand the stack | `docs/ARCHITECTURE.md` (in the project)
+Know what phase you're in | `docs/SESSION.md` → `phase: N`
+See the checklist for a phase | `references/phase-checklists.md` → search for `## Phase N`
+Know which skills to run | `references/delegated-skills.md`
+Understand enforcement mechanisms | `references/enforcement-summary.md`
+Verify a gate | `scripts/validate-gate.sh <phase>`
+Set up git hooks | `references/git-strategy.md`
+Design an API | `references/api-design.md`
+Write tests | `references/testing-strategy.md`
+Verify library versions | `references/api-versioning.md`
+Check code quality | `references/code-quality.md`
+Handle UI/UX | `references/ui-ux.md` + `references/ui-ux-grill.md`
+Set up operations | `references/operations.md`
+Handle compliance | `references/compliance.md`
+Write documentation | `references/documentation.md`
+Design domain model | `references/ddd.md`
+Build microservices | `references/microservices.md`
+Design event-driven system | `references/event-driven.md`
+Coordinate multiple teams | `references/multi-team.md`
+Deploy across regions | `references/multi-region.md`
+Build internal platform | `references/platform-engineering.md`
+Build data pipelines | `references/data-engineering.md`
+Implement advanced security | `references/advanced-security.md`
+Manage cloud costs | `references/finops.md`
+Test resilience | `references/chaos-engineering.md`
+Observe distributed systems | `references/observability-scale.md`
+Build mobile apps | `references/mobile.md`
+Create a template file | `templates/README.md` (then copy the specific template)
+Run validation | `scripts/README.md` (then run the specific script)
+Browse reference files | `references/README.md` (one-line summary of each)
+
+**Templates** (copy these to create project files):
+- `templates/SESSION.md` → `docs/SESSION.md`
+- `templates/ARCHITECTURE.md` → `docs/ARCHITECTURE.md`
+- `templates/CONTEXT.md` → `CONTEXT.md`
+- `templates/ISSUES.md` → `docs/ISSUES.md`
+- `templates/DEPLOYMENT.md` → `docs/DEPLOYMENT.md`
+- `templates/CHANGELOG.md` → `CHANGELOG.md`
+- `templates/CONTRIBUTING.md` → `CONTRIBUTING.md`
+- `templates/runbook.md` → `docs/runbooks/<alert-name>.md`
+
+**Scripts** (run these to validate):
+- `scripts/validate-gate.sh <phase>` — verify all artifacts for a phase gate
+- `scripts/session-status.sh` — show current session state
+- `scripts/pre-push.sh` — git pre-push hook (blocks force-push to main)
+
+## Phase Reading Lists
+
+**Phase 0 (Bootstrap):** `references/git-strategy.md`, `references/api-versioning.md` (for installing deps)
+
+**Phase 1 (Blueprint):** `references/api-design.md`, `references/ui-ux.md`, `references/ui-ux-grill.md` (§1-§4), `references/compliance.md`, `references/ddd.md` (if complex domain), `references/microservices.md` (if distributed), `references/event-driven.md` (if event-driven), `references/multi-team.md` (if 3+ teams), `references/multi-region.md` (if global), `references/advanced-security.md` (if sensitive data), `references/mobile.md` (if building mobile apps)
+
+**Phase 2 (Backlog):** `references/testing-strategy.md` (to understand test levels for issues), `references/ddd.md` (align issues with bounded contexts)
+
+**Phase 3 (Implement):** `references/code-quality.md`, `references/api-design.md`, `references/api-versioning.md`, `references/testing-strategy.md`, `references/documentation.md`, `references/ui-ux-grill.md` (§6-§7 if UI), `references/microservices.md` (resilience patterns), `references/event-driven.md` (if event-driven), `references/observability-scale.md` (instrument services), `references/mobile.md` (if building mobile apps)
+
+**Phase 4 (Productionization):** `references/operations.md`, `references/testing-strategy.md` (CI pipeline), `references/platform-engineering.md` (if platform team), `references/advanced-security.md` (security setup), `references/observability-scale.md` (set up observability), `references/multi-region.md` (if multi-region), `references/mobile.md` (if building mobile apps)
+
+**Phase 5 (Security):** `references/api-design.md` (validation, idempotency), `references/compliance.md`, `references/advanced-security.md` (zero trust, secrets management)
+
+**Phase 6 (Operations):** `references/operations.md`, `references/observability-scale.md` (distributed tracing, SLOs), `references/chaos-engineering.md` (resilience testing), `references/finops.md` (cost optimization), `references/multi-team.md` (team coordination), `references/mobile.md` (app store monitoring, crash reporting)
+
+**Phase 7 (Upkeep):** `references/code-quality.md` (audit), `references/documentation.md` (doc audit), `references/ui-ux.md` (§9 audit), `references/compliance.md` (compliance audit), `references/api-versioning.md` (dependency audit), `references/finops.md` (cost review)
+
+**Feature Loop:** Same as Phase 3, plus `references/documentation.md` for CHANGELOG/contracts
+
+## Quick Start
+
+**Minimum to read first:**
+1. This file (SKILL.md) — you're reading it now
+2. `docs/SESSION.md` (in the project) — tells you what phase you're in
+3. `references/phase-checklists.md` — copy the checklist for your current phase
+4. The "Phase Reading List" above for your current phase
+
+**Optional first reads** (if you want an overview):
+- `references/README.md` — one-line summary of each reference file
+- `templates/README.md` — what each template is for
+- `scripts/README.md` — what each script does
+
+**Then follow the checklist.** Each step tells you what to do and what artifact to produce. When you're done, run `scripts/validate-gate.sh <phase>` to verify.
+
 ## Invocation
 
 Read `docs/SESSION.md`. Branch on what you find:
@@ -85,6 +172,32 @@ Cross-cutting standards referenced by multiple phases:
 - `references/operations.md` — environments, monitoring, alerting, DR,
   performance, cost management
 - `references/compliance.md` — GDPR, data privacy, audit logging, retention
+- `references/git-strategy.md` — conventional commits, branching, hooks,
+  signing, semver tagging, agent-agnostic guardrails
+- `references/ddd.md` — bounded contexts, context mapping, aggregates,
+  domain events, strategic design for complex domains
+- `references/microservices.md` — service decomposition, communication
+  patterns, resilience, data management, deployment
+- `references/event-driven.md` — event sourcing, CQRS, sagas, messaging
+  patterns, schema evolution
+- `references/multi-team.md` — team topologies, ownership models,
+  communication patterns, dependency management, governance
+- `references/multi-region.md` — deployment topologies, data replication,
+  traffic routing, content delivery, database strategies
+- `references/platform-engineering.md` — internal developer platform,
+  golden paths, self-service, service catalog, environment management
+- `references/data-engineering.md` — data pipelines, warehouses, lakes,
+  ETL/ELT, analytics infrastructure, data governance
+- `references/advanced-security.md` — zero trust, mTLS, secrets management,
+  network security, data security, compliance, security testing
+- `references/finops.md` — cost visibility, optimization, budget management,
+  governance, waste detection
+- `references/chaos-engineering.md` — chaos experiments, game days,
+  continuous chaos, resilience patterns
+- `references/observability-scale.md` — metrics, logs, traces, OpenTelemetry,
+  distributed tracing, SLOs, observability-driven development
+- `references/mobile.md` — iOS/Android deployment, offline-first, push
+  notifications, device constraints, app store optimization
 
 Deliverable layout:
 
@@ -114,19 +227,23 @@ Write `phase: 0` to `docs/SESSION.md`. Run `/setup-matt-pocock-skills`.
 
 Init git. Generate `.gitignore`, `README.md`, `CONTRIBUTING.md`
 (template: `templates/CONTRIBUTING.md`), `CHANGELOG.md`
-(template: `templates/CHANGELOG.md`).
-Create `docs/`, `docs/adr/`, `docs/agents/contracts/`, `docs/agents/schemas/`,
-`.scratch/`. Interrogate the stack for linter, formatter, typechecker — adapt,
-don't assume. Before installing any dependency, run the latest-stable check
-from `references/api-versioning.md` § "Installing" — never install from memory.
+(template: `templates/CHANGELOG.md`). Create `docs/`, `docs/adr/`,
+`docs/agents/contracts/`, `docs/agents/schemas/`, `.scratch/`. Interrogate
+the stack for linter, formatter, typechecker — adapt, don't assume. Before
+installing any dependency, run the latest-stable check from
+`references/api-versioning.md` § "Installing" — never install from memory.
 Pin exact versions in the manifest with a registry check timestamp comment.
-Run `/setup-pre-commit`. Create blank `CONTEXT.md`
+Set up git hooks per `references/git-strategy.md`: agent suggests the
+appropriate hook framework for the stack (Husky, lefthook, pre-commit, etc.),
+commit message validation (conventional commits), and pre-push hook (blocks
+force-push to main, runs full test suite). Create blank `CONTEXT.md`
 (template: `templates/CONTEXT.md`) and `docs/ARCHITECTURE.md`
 (template: `templates/ARCHITECTURE.md`).
 
 **Gate:** Linter and typechecker exit `0`. README is non-empty (project name
-+ one-liner). CHANGELOG.md follows `keepachangelog.com` format.
-Run `scripts/validate-gate.sh 0` if the stack supports it.
++ one-liner). CHANGELOG.md follows `keepachangelog.com` format. Git hooks
+installed (pre-commit, commit-msg, pre-push). Run `scripts/validate-gate.sh 0`
+to verify all Phase 0 artifacts.
 
 ---
 
@@ -158,7 +275,7 @@ Present `CONTEXT.md` and `docs/ARCHITECTURE.md` for review.
 **Gate:** User writes `Confirm CONTEXT.md` and `Confirm ARCHITECTURE.md`.
 ARCHITECTURE.md includes documentation posture: who writes what, where agent
 docs live (contracts, schemas, graph), where human docs live (README,
-CHANGELOG, ADRs).
+CHANGELOG, ADRs). Run `scripts/validate-gate.sh 1` to verify all Phase 1 artifacts.
 
 Full details: `references/phases.md#phase-1`.
 
@@ -181,6 +298,7 @@ dependency graph to `docs/ISSUES.md` (template: `templates/ISSUES.md`).
 **Gate:** Every issue is a vertical slice, self-contained, agent-ready. Each
 issue includes a `Docs:` field listing what documentation it will produce
 or update (README section, CHANGELOG entry, agent contract, ADR, etc.).
+Run `scripts/validate-gate.sh 2` to verify all Phase 2 artifacts.
 
 ---
 
@@ -206,7 +324,9 @@ For each issue in dependency order: branch → RED → GREEN → REFACTOR (verif
 against `references/code-quality.md`, `references/api-design.md`, and
 `references/api-versioning.md` — every third-party import must be verified
 against the installed version before the first call) →
-summarise in `docs/SESSION.md` → squash-merge → delete branch.
+summarise in `docs/SESSION.md` → squash-merge to `main` with conventional
+commit message (`feat(scope): description`, `fix(scope): description`) →
+delete branch.
 
 Apply the testing strategy from `references/testing-strategy.md`: unit tests
 for business logic, integration for boundaries, e2e for critical journeys.
@@ -215,7 +335,7 @@ for business logic, integration for boundaries, e2e for critical journeys.
 Linter + typechecker exit 0. Every public interface has docstrings or typed
 signatures (agent-facing). CHANGELOG updated per issue. API contracts in
 `docs/agents/contracts/` match implementation. Run `scripts/validate-gate.sh 3`
-if the stack supports it.
+to verify all Phase 3 artifacts.
 
 ---
 
@@ -233,7 +353,7 @@ flags if declared in Phase 1.
 Data survives a restart cycle. CI pipeline passes all stages. Preview
 deployments work (if applicable). README has one-command setup + deploy
 instructions that succeed on a clean clone. DEPLOYMENT.md matches deployed
-artifacts.
+artifacts. Run `scripts/validate-gate.sh 4` to verify all Phase 4 artifacts.
 
 ---
 
@@ -252,7 +372,7 @@ PII hygiene).
 prevent double-processing. All endpoints rate-limited (429). Zero 500s from
 fuzzing. Migration cycle exits `0`. Compliance checklist verified. Data model
 documented in `docs/agents/schemas/`. Auth flow documented in
-`docs/ARCHITECTURE.md` (or an ADR).
+`docs/ARCHITECTURE.md` (or an ADR). Run `scripts/validate-gate.sh 5` to verify all Phase 5 artifacts.
 
 ---
 
@@ -274,7 +394,7 @@ Full details in `references/operations.md`.
 dashboard. Load test passes. Shutdown test passes. Backup/restore succeeds.
 Alerts configured. Every alert has a runbook in `docs/runbooks/`.
 DEPLOYMENT.md is finalized (single-command launch, env setup, operational
-checklist all verified).
+checklist all verified). Run `scripts/validate-gate.sh 6` to verify all Phase 6 artifacts.
 
 ---
 
@@ -318,7 +438,7 @@ for dead code and duplication resolved or filed. Documentation audit passes
 (no gaps). Performance audit confirms no regressions. Compliance audit passes.
 UX audit checklist passes (all items checked, failures filed as issues).
 Every ADR honored or explicitly superseded. Write `status: complete` to
-`docs/SESSION.md`.
+`docs/SESSION.md`. Run `scripts/validate-gate.sh 7` to verify all Phase 7 artifacts.
 
 ---
 
@@ -376,8 +496,10 @@ See `references/directives.md` for the full text. Summary:
 2. **Gating.** Do not advance without user verification or gate passing.
 3. **Errors.** Narrow → retry once → rollback + log blocker → yield.
 4. **Secrets.** Never track credentials. Verify `.gitignore` before commits.
-5. **Agnosticism.** No stack assumptions. Every action driven by
-   ARCHITECTURE.md.
+5. **Agnosticism with suggestions.** No stack assumptions. Every action
+   driven by ARCHITECTURE.md. But when the user is choosing tools, suggest
+   2-3 concrete options with trade-offs — verify each is current before
+   presenting. Never suggest from memory.
 6. **Documentation.** Every public interface change updates agent docs
    (contracts, graph, schemas) and human docs (README, CHANGELOG, ADRs).
    Neither is optional.
@@ -396,3 +518,20 @@ See `references/directives.md` for the full text. Summary:
     verifiable. Do NOT declare a gate passed until every step is ticked or
     marked N/A with reason. This is non-negotiable — the checklist is the
     proof of work. See `references/directives.md` §10.
+11. **Anti-hallucination & verification.** Never fabricate tools, patterns,
+    metrics, or technical claims. Verify all suggestions against current
+    sources. When uncertain, say so. If caught fabricating, correct immediately,
+    log the error, and yield to the user. See `references/directives.md` §11.
+12. **Gate validation failures.** When `validate-gate.sh` fails, stop immediately.
+    Fix the issues and re-run. If still failing after 2 attempts, log the blocker
+    and yield to the user. Never proceed to the next phase with a failed gate.
+    See `references/directives.md` §12.
+13. **Contradictory & ambiguous input.** When the user provides contradictory
+    or ambiguous requirements, identify the issue, ask for clarification, and
+    do not proceed until resolved. Never assume what the user meant. Document
+    all clarifications. See `references/directives.md` §13.
+14. **User confirmation requirements.** Beyond phase gates, certain decisions
+    require explicit user confirmation: stack choices, architecture decisions,
+    third-party services, security approach, deployment strategy, cost implications,
+    and breaking changes. Present options with trade-offs, make a recommendation,
+    and wait for confirmation before implementing. See `references/directives.md` §14.

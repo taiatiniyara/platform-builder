@@ -23,6 +23,19 @@ Run these checks to verify the skill is correctly structured.
   - [ ] `references/api-versioning.md`
   - [ ] `references/documentation.md`
   - [ ] `references/skill-prerequisites.md`
+  - [ ] `references/git-strategy.md`
+  - [ ] `references/ddd.md`
+  - [ ] `references/microservices.md`
+  - [ ] `references/event-driven.md`
+  - [ ] `references/multi-team.md`
+  - [ ] `references/multi-region.md`
+  - [ ] `references/platform-engineering.md`
+  - [ ] `references/data-engineering.md`
+  - [ ] `references/advanced-security.md`
+  - [ ] `references/finops.md`
+  - [ ] `references/chaos-engineering.md`
+  - [ ] `references/observability-scale.md`
+  - [ ] `references/mobile.md`
   - [ ] `templates/SESSION.md`
   - [ ] `templates/CONTEXT.md`
   - [ ] `templates/ARCHITECTURE.md`
@@ -33,6 +46,7 @@ Run these checks to verify the skill is correctly structured.
   - [ ] `templates/runbook.md`
   - [ ] `scripts/session-status.sh`
   - [ ] `scripts/validate-gate.sh`
+  - [ ] `scripts/pre-push.sh`
   - [ ] `tests/validation.md`
 
 ## Content
@@ -150,8 +164,44 @@ Run these checks to verify the skill is correctly structured.
 - [ ] `delegated-skills.md` includes `domain-modeling` for brownfield Phase 1
 - [ ] `delegated-skills.md` includes `handoff` for circuit breaker yield
 
+## Mobile & Large-Scale Patterns
+
+- [ ] `references/mobile.md` covers iOS/Android deployment, offline-first, push notifications, device constraints, app store optimization, testing on real devices
+- [ ] `references/ddd.md` covers bounded contexts, context mapping, aggregates, domain events, strategic design
+- [ ] `references/microservices.md` covers service decomposition, communication patterns, resilience, data management, deployment
+- [ ] `references/event-driven.md` covers event sourcing, CQRS, sagas, messaging patterns, schema evolution
+- [ ] `references/multi-team.md` covers team topologies, ownership models, communication patterns, dependency management, governance
+- [ ] `references/multi-region.md` covers deployment topologies, data replication, traffic routing, content delivery, database strategies
+- [ ] `references/platform-engineering.md` covers internal developer platform, golden paths, self-service, service catalog, environment management
+- [ ] `references/data-engineering.md` covers data pipelines, warehouses, lakes, ETL/ELT, analytics infrastructure, data governance
+- [ ] `references/advanced-security.md` covers zero trust, mTLS, secrets management, network security, data security, compliance, security testing
+- [ ] `references/finops.md` covers cost visibility, optimization, budget management, governance, waste detection
+- [ ] `references/chaos-engineering.md` covers chaos experiments, game days, continuous chaos, resilience patterns
+- [ ] `references/observability-scale.md` covers metrics, logs, traces, OpenTelemetry, distributed tracing, SLOs, observability-driven development
+- [ ] All reference files include "Tool Selection" section stating tools are examples, not recommendations
+- [ ] All reference files require agent to research current options and present 2-3 choices with trade-offs
+- [ ] Phase 1 checklist includes optional steps for mobile, DDD, microservices, event-driven, multi-team, multi-region, security
+- [ ] Phase 4 checklist includes optional steps for platform engineering, security, observability, multi-region, mobile
+- [ ] Phase 6 checklist includes optional steps for FinOps, chaos engineering, multi-team coordination
+
 ## Directives
 
-- [ ] 9 directives defined, all referenced in SKILL.md summary
+- [ ] 14 directives defined, all referenced in SKILL.md summary
 - [ ] §8 (Prerequisites) references `references/skill-prerequisites.md`
 - [ ] §9 (Circuit Breaker) includes brownfield entry rules
+- [ ] §11 (Anti-Hallucination & Verification) defines rules against fabricating tools, patterns, metrics, or technical claims
+- [ ] §11 requires verification against current sources before suggesting tools
+- [ ] §11 defines consequences for hallucination (correct, log, yield)
+- [ ] §12 (Gate Validation Failures) defines behavior when validate-gate.sh fails
+- [ ] §12 requires stopping immediately on gate validation failure
+- [ ] §12 defines retry logic (fix issues, re-run, yield after 2 failures)
+- [ ] §12 explicitly forbids proceeding to next phase with failed gate
+- [ ] §13 (Contradictory & Ambiguous Input) defines behavior for contradictory requirements
+- [ ] §13 requires identifying and asking for clarification on contradictions
+- [ ] §13 defines behavior for ambiguous requirements (ask for specifics)
+- [ ] §13 explicitly forbids proceeding with assumptions
+- [ ] §13 requires documenting all clarifications
+- [ ] §14 (User Confirmation Requirements) lists decisions requiring explicit confirmation
+- [ ] §14 includes stack choices, architecture decisions, third-party services, security approach, deployment strategy, cost implications, breaking changes
+- [ ] §14 defines confirmation workflow (present options, recommend, ask, wait, document)
+- [ ] §14 explicitly forbids implementing decisions without user confirmation

@@ -4,6 +4,16 @@ Defines the test mix, data management, and quality gates applied during
 Phase 3 (Implement) and enforced by CI in Phase 4. Stack-agnostic — the
 agent picks the right tools for the project's language and framework.
 
+## Tool Selection
+
+This file describes **patterns**, not specific tools. Tools mentioned are
+**examples** to illustrate the pattern — not recommendations. When selecting
+tools for this project, the agent MUST:
+1. Check `docs/ARCHITECTURE.md` for the declared stack
+2. Research current options (never suggest from memory)
+3. Present 2-3 options with trade-offs
+4. Let the user decide
+
 ---
 
 ## Test Pyramid

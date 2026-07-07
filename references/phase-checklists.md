@@ -24,7 +24,7 @@ it. Gates cannot pass until every step is ticked and every artifact exists.
 - [ ] `README.md` generated
   - Artifact: file exists, contains project name + one-liner
 - [ ] `CONTRIBUTING.md` generated from template
-  - Artifact: file exists, non-empty
+  - Artifact: file exists, non-empty, documents branching + commit convention
 - [ ] `CHANGELOG.md` generated
   - Artifact: file exists, follows keepachangelog.com format
 - [ ] Directory structure created
@@ -33,16 +33,22 @@ it. Gates cannot pass until every step is ticked and every artifact exists.
   - Artifact: config files exist (e.g., `.eslintrc`, `tsconfig.json`)
 - [ ] All deps version-checked against registry
   - Artifact: manifest has registry-check timestamp comments
-- [ ] `/setup-pre-commit` run
-  - Artifact: pre-commit hook configured
+- [ ] `/setup-pre-commit` run (or equivalent for the stack)
+  - Artifact: pre-commit hook configured (formatter + typecheck + test)
+- [ ] Commit message validation configured (agent suggests based on stack)
+  - Artifact: commit-msg hook installed, validates conventional commits
+- [ ] pre-push hook installed
+  - Artifact: pre-push hook exists, blocks force-push to main, runs full test suite
 - [ ] `CONTEXT.md` created from template
   - Artifact: file exists (blank is OK for Phase 0)
 - [ ] `docs/ARCHITECTURE.md` created from template
   - Artifact: file exists (blank is OK for Phase 0)
 - [ ] Linter exits 0
-  - Artifact: `npm run lint` (or equivalent) exits 0
+  - Artifact: linter command (stack-appropriate) exits 0
 - [ ] Typechecker exits 0
-  - Artifact: `npm run typecheck` (or equivalent) exits 0
+  - Artifact: typechecker command (stack-appropriate) exits 0
+- [ ] `scripts/validate-gate.sh 0` passes
+  - Artifact: script exits 0
 
 ---
 
@@ -70,6 +76,34 @@ it. Gates cannot pass until every step is ticked and every artifact exists.
   - Artifact: design tokens defined (colors, spacing, typography, radii, shadows)
   - Artifact: component catalog with state coverage
   - Artifact: accessibility baseline (WCAG 2.1 AA minimum)
+- [ ] Domain model defined (if complex domain, per `references/ddd.md`)
+  - Artifact: bounded contexts identified and documented in `docs/ARCHITECTURE.md`
+  - Artifact: context map created (if 2+ bounded contexts)
+  - Artifact: context files in `docs/agents/schemas/contexts/` (if applicable)
+- [ ] Service decomposition defined (if microservices, per `references/microservices.md`)
+  - Artifact: service boundaries documented in `docs/ARCHITECTURE.md`
+  - Artifact: communication patterns chosen (sync vs async)
+  - Artifact: resilience patterns chosen (circuit breaker, retry, timeout)
+- [ ] Event-driven architecture defined (if applicable, per `references/event-driven.md`)
+  - Artifact: events identified and documented
+  - Artifact: messaging pattern chosen (point-to-point, pub-sub, streaming)
+  - Artifact: event contracts in `docs/agents/contracts/`
+- [ ] Team topology defined (if 3+ teams, per `references/multi-team.md`)
+  - Artifact: team types documented (stream-aligned, platform, enabling, subsystem)
+  - Artifact: ownership model defined (code, data, API)
+  - Artifact: communication patterns documented
+- [ ] Multi-region strategy defined (if global, per `references/multi-region.md`)
+  - Artifact: deployment topology chosen (active-passive, active-active, regional isolation)
+  - Artifact: data replication strategy chosen
+  - Artifact: traffic routing strategy chosen
+- [ ] Security strategy defined (if sensitive data, per `references/advanced-security.md`)
+  - Artifact: authentication strategy chosen (mTLS, JWT, API keys)
+  - Artifact: secrets management strategy chosen
+  - Artifact: network security strategy chosen (WAF, DDoS)
+- [ ] Mobile strategy defined (if building mobile apps, per `references/mobile.md`)
+  - Artifact: platform strategy chosen (iOS, Android, cross-platform)
+  - Artifact: architecture pattern chosen (offline-first, state management)
+  - Artifact: device constraints documented (app size, memory, battery)
 - [ ] Full UI/UX grill run (§1‑§4 from `references/ui-ux-grill.md`)
   - Artifact: every question answered (no hedging)
   - Artifact: unresolved answers filed as ADRs or issues
@@ -77,6 +111,8 @@ it. Gates cannot pass until every step is ticked and every artifact exists.
   - Artifact: user writes `Confirm CONTEXT.md`
 - [ ] `docs/ARCHITECTURE.md` presented for review
   - Artifact: user writes `Confirm ARCHITECTURE.md`
+- [ ] `scripts/validate-gate.sh 1` passes
+  - Artifact: script exits 0
 
 ---
 
@@ -97,6 +133,8 @@ it. Gates cannot pass until every step is ticked and every artifact exists.
   - Artifact: `docs/ISSUES.md` contains dependency graph
 - [ ] High-risk issues tagged
   - Artifact: issues crossing community boundaries or modifying god nodes have `risk: high`
+- [ ] `scripts/validate-gate.sh 2` passes
+  - Artifact: script exits 0
 
 ---
 
@@ -132,8 +170,8 @@ For EACH issue in dependency order:
   - Artifact: every question answered before code written
 - [ ] Session summarized
   - Artifact: `docs/SESSION.md` updated with trajectory
-- [ ] Squash-merged
-  - Artifact: branch merged to `main`, branch deleted
+- [ ] Squash-merged with conventional commit message
+  - Artifact: branch merged to `main` with `type(scope): description` format, `Closes #<n>` in footer, branch deleted
 
 Phase 3 gate:
 
@@ -151,6 +189,8 @@ Phase 3 gate:
   - Artifact: one entry per issue in `CHANGELOG.md`
 - [ ] API contracts match implementation
   - Artifact: `docs/agents/contracts/` matches code
+- [ ] `scripts/validate-gate.sh 3` passes
+  - Artifact: script exits 0
 
 ---
 
@@ -178,6 +218,33 @@ Phase 3 gate:
   - Artifact: data persists after restart
 - [ ] README has one-command setup + deploy instructions
   - Artifact: instructions work on clean clone
+- [ ] Platform engineering setup (if 3+ teams, per `references/platform-engineering.md`)
+  - Artifact: golden paths created (service, database, frontend templates)
+  - Artifact: self-service portal configured (if applicable)
+  - Artifact: service catalog populated
+- [ ] Security setup (if sensitive data, per `references/advanced-security.md`)
+  - Artifact: authentication/authorization implemented
+  - Artifact: secrets manager configured (Vault, AWS Secrets Manager)
+  - Artifact: encryption at rest and in transit enabled
+  - Artifact: network security configured (WAF, DDoS protection)
+- [ ] Observability setup (per `references/observability-scale.md`)
+  - Artifact: all services instrumented with OpenTelemetry
+  - Artifact: metrics collection configured (Prometheus)
+  - Artifact: log aggregation configured (Loki, ELK)
+  - Artifact: distributed tracing configured (Jaeger, Zipkin)
+  - Artifact: SLOs defined per service
+- [ ] Multi-region setup (if global, per `references/multi-region.md`)
+  - Artifact: infrastructure deployed in each region
+  - Artifact: data replication configured
+  - Artifact: traffic routing configured (DNS, load balancer)
+  - Artifact: CDN configured
+- [ ] Mobile setup (if building mobile apps, per `references/mobile.md`)
+  - Artifact: CI/CD configured (Fastlane, Bitrise, Codemagic)
+  - Artifact: beta testing configured (TestFlight, Internal Testing)
+  - Artifact: app store metadata prepared (screenshots, description)
+  - Artifact: push notifications configured (APNs, FCM)
+- [ ] `scripts/validate-gate.sh 4` passes
+  - Artifact: script exits 0
 
 ---
 
@@ -206,6 +273,8 @@ Phase 3 gate:
   - Artifact: `docs/agents/schemas/` contains schemas
 - [ ] Auth flow documented
   - Artifact: `docs/ARCHITECTURE.md` or ADR describes auth flow
+- [ ] `scripts/validate-gate.sh 5` passes
+  - Artifact: script exits 0
 
 ---
 
@@ -241,10 +310,25 @@ Phase 3 gate:
   - Artifact: migrations run before new code serves traffic
 - [ ] Cost review against Phase 1 estimate
   - Artifact: actual costs compared, unused resources cleaned up
+- [ ] FinOps practices applied (if cloud spend >$5K/month, per `references/finops.md`)
+  - Artifact: cost allocation tags configured
+  - Artifact: budget alerts configured
+  - Artifact: cost dashboards created
+  - Artifact: right-sizing review done
+- [ ] Chaos engineering setup (if microservices, per `references/chaos-engineering.md`)
+  - Artifact: chaos experiments defined
+  - Artifact: game day plan created
+  - Artifact: continuous chaos configured in CI/CD (if applicable)
+- [ ] Multi-team coordination setup (if 3+ teams, per `references/multi-team.md`)
+  - Artifact: ownership model documented
+  - Artifact: RFC process established
+  - Artifact: cross-team dependency management configured
 - [ ] `docs/DEPLOYMENT.md` finalized
   - Artifact: single-command launch, env setup, operational checklist verified
 - [ ] `docs/ARCHITECTURE.md` finalized
   - Artifact: all sections complete and accurate
+- [ ] `scripts/validate-gate.sh 6` passes
+  - Artifact: script exits 0
 
 ---
 
@@ -281,6 +365,11 @@ Phase 3 gate:
   - Artifact: audit logging, data retention, PII hygiene, dependency licenses verified
 - [ ] i18n audit run (if applicable)
   - Artifact: no hardcoded strings, RTL works, locale-aware formatting
+- [ ] FinOps audit run (if cloud spend >$5K/month, per `references/finops.md`)
+  - Artifact: cost allocation tags reviewed
+  - Artifact: unused resources identified and removed
+  - Artifact: right-sizing review done
+  - Artifact: reserved instance coverage reviewed
 - [ ] `/request-refactor-plan` run on highest-value shallow module
   - Artifact: refactor plan applied
 - [ ] `/qa` run
@@ -293,6 +382,8 @@ Phase 3 gate:
   - Artifact: no orphaned ADRs
 - [ ] `status: complete` written to `docs/SESSION.md`
   - Artifact: `docs/SESSION.md` contains `status: complete`
+- [ ] `scripts/validate-gate.sh 7` passes
+  - Artifact: script exits 0
 
 ---
 
@@ -326,6 +417,8 @@ For EACH feature:
   - Artifact: public interfaces documented, contracts updated, CHANGELOG entry
 - [ ] Code quality verified against `references/code-quality.md`
   - Artifact: linter + typechecker exit 0
+- [ ] Squash-merged with conventional commit message
+  - Artifact: branch merged to `main` with `type(scope): description` format, branch deleted
 - [ ] `/review` run
   - Artifact: no standards violations, no spec drift, no doc gaps
 - [ ] `docs/SESSION.md` updated after each step
@@ -334,3 +427,5 @@ For EACH feature:
   - Artifact: glossary reflects new terms
 - [ ] `/graphify .` full rebuild after feature complete
   - Artifact: graph fully rebuilt
+- [ ] `scripts/validate-gate.sh 3` passes
+  - Artifact: script exits 0

@@ -5,6 +5,16 @@ during Phase 3 (Implement — every endpoint must follow these). Covers REST,
 GraphQL, RPC, and event contracts. Stack-agnostic — specifics filled in from
 `docs/ARCHITECTURE.md`.
 
+## Tool Selection
+
+This file describes **patterns**, not specific tools. Tools mentioned are
+**examples** to illustrate the pattern — not recommendations. When selecting
+tools for this project, the agent MUST:
+1. Check `docs/ARCHITECTURE.md` for the declared stack
+2. Research current options (never suggest from memory)
+3. Present 2-3 options with trade-offs
+4. Let the user decide
+
 ---
 
 ## Versioning

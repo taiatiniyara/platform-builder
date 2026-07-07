@@ -36,12 +36,42 @@ Never track credentials, keys, tokens, or secrets in any file. Verify
 `.gitignore` covers all sensitive paths before every commit. If a
 `.gitignore` entry is missing, add it before committing.
 
-## 5. Agnosticism
+## 4b. Git Safety
+
+All git enforcement is agent-agnostic — applied via git hooks (Husky),
+not agent-specific config. Follow `references/git-strategy.md`:
+
+- **Commits:** conventional commit format enforced by `commit-msg` hook
+- **Branches:** `issue-<n>-<slug>` from `main`, squash-merge back, delete
+- **Push:** `pre-push` hook blocks force-push to `main`, runs full test suite
+- **No direct to main:** all changes via branch + merge
+- **Signing:** commits should be GPG/SSH signed (documented in CONTRIBUTING.md)
+
+Never bypass hooks (`--no-verify`). Never force-push to protected branches.
+Never commit directly to `main`. If a hook fails, fix the issue — do not
+work around it.
+
+## 5. Agnosticism with Suggestions
 
 No assumptions about Docker, databases, HTTP, Unix, or any specific stack.
 Every action is driven by declarations in `docs/ARCHITECTURE.md`. If a
 needed declaration is missing (e.g., "which data store?"), halt and ask the
 user rather than guessing.
+
+**However:** when the user is deciding on tools, technologies, or patterns,
+the agent MUST provide concrete suggestions based on the declared stack and
+requirements. Do not say "choose whatever works" — research and present
+2-3 options with trade-offs. Examples:
+
+- "For your Node.js API, consider: Express (mature, flexible), Fastify
+  (high performance), or Hono (lightweight, edge-ready)"
+- "For your PostgreSQL database, consider: Supabase (managed, realtime),
+  Neon (serverless, branching), or Railway (simple, predictable pricing)"
+- "For authentication, consider: Auth0 (enterprise, expensive), Clerk
+  (developer-friendly), or Lucia (open source, self-hosted)"
+
+Always verify suggested tools are current (check registry, website) before
+presenting. Never suggest from memory — training data may be outdated.
 
 ## 6. Documentation
 
@@ -129,3 +159,169 @@ any phase, copy its checklist from `references/phase-checklists.md` into
 This directive is non-negotiable. Checklist compliance is what prevents
 agents from skipping mandatory steps like grilling, graphify, UI/UX
 reviews, and other critical quality gates.
+
+## 11. Anti-Hallucination & Verification
+
+The agent MUST NOT fabricate or invent information. All recommendations,
+tool suggestions, architecture decisions, and technical claims must be
+verifiable against current sources.
+
+**Rules:**
+- **Never suggest tools from memory.** Always check the registry, website,
+  or documentation to verify the tool exists, is current, and matches the
+  declared stack.
+- **Never invent patterns or practices.** If a pattern is not in the
+  reference files, do not claim it exists. Research it or ask the user.
+- **Never fabricate metrics, statistics, or benchmarks.** If you don't
+  have real data, say "I don't have data on this" or research it.
+- **Never claim to have verified something you haven't.** If you say
+  "I checked the registry" or "I verified the tool exists," you must
+  have actually done it in this session.
+- **When uncertain, say so.** Use phrases like "I'm not certain about
+  this, let me verify" or "I don't have information on this."
+
+**Verification workflow:**
+1. Before suggesting any tool, check its registry/website for:
+   - Current version
+   - Last update date
+   - Compatibility with declared stack
+   - License and maintenance status
+2. Before recommending any pattern, verify it exists in the reference
+   files or research it from authoritative sources.
+3. Before making any technical claim, verify it against installed
+   versions, documentation, or authoritative references.
+
+**Consequences:** If the agent is caught fabricating information, it must:
+1. Immediately correct the false information
+2. Log the error to `docs/SESSION.md` with format:
+   `HALLUCINATION: <what was fabricated> — <correct information>`
+3. Re-verify all other claims made in the session
+4. Yield to the user with an apology and corrected information
+
+This directive is non-negotiable. Hallucination destroys trust and leads
+to broken systems.
+
+## 12. Gate Validation Failures
+
+When `scripts/validate-gate.sh <phase>` fails, the agent MUST NOT proceed
+to the next phase. Gate validation is a hard requirement.
+
+**On validate-gate.sh failure:**
+1. **Stop immediately.** Do not attempt to advance to the next phase.
+2. **Read the error output.** Identify which artifacts are missing or invalid.
+3. **Fix the issues.** Complete the missing artifacts or fix invalid ones.
+4. **Re-run validate-gate.sh.** Verify all issues are resolved.
+5. **If still failing after 2 attempts:**
+   - Log the blocker to `docs/SESSION.md` with format:
+     `GATE_VALIDATION_FAILED: <phase> — <what failed> — <remediation needed>`
+   - Yield to the user with the specific failures and ask for guidance.
+   - Do NOT proceed to the next phase.
+
+**Common failures and fixes:**
+- **Missing files:** Create the required files from templates
+- **Empty files:** Populate the files with required content
+- **Command failures:** Fix the underlying issue (lint errors, test failures, etc.)
+- **Missing sections:** Add the required sections to documentation
+
+**Never:**
+- Skip validate-gate.sh and proceed anyway
+- Manually verify artifacts instead of running the script
+- Claim the gate passed when the script failed
+- Modify the script to make it pass without fixing the underlying issues
+
+This directive is non-negotiable. Gate validation ensures quality and
+prevents incomplete work from advancing.
+
+## 13. Contradictory & Ambiguous Input
+
+When the user provides contradictory or ambiguous requirements, the agent
+MUST NOT proceed with assumptions. Clarification is required.
+
+**On contradictory input:**
+1. **Identify the contradiction.** Clearly state what conflicts.
+   Example: "You mentioned PostgreSQL for the database, but also said
+   you need a document database. These are different database types."
+2. **Ask for clarification.** Present the contradiction and ask the user
+   to choose or clarify.
+3. **Do NOT proceed** until the contradiction is resolved.
+4. **Document the resolution** in `docs/SESSION.md` or an ADR.
+
+**On ambiguous input:**
+1. **Identify the ambiguity.** Clearly state what is unclear.
+   Example: "You said 'make it fast,' but I need specific performance
+   targets. What response time do you consider 'fast'?"
+2. **Ask for specifics.** Request concrete, measurable requirements.
+3. **Provide examples** of what specific requirements look like.
+   Example: "For performance, I need: p95 response time < 200ms,
+   throughput > 1000 req/s, etc."
+4. **Do NOT proceed** until the ambiguity is resolved.
+5. **Document the clarification** in `docs/SESSION.md` or an ADR.
+
+**Never:**
+- Assume what the user meant when input is contradictory or ambiguous
+- Proceed with one interpretation without confirming with the user
+- Make decisions on behalf of the user for ambiguous requirements
+- Silently pick one option when multiple interpretations exist
+
+**Always:**
+- Ask clarifying questions before proceeding
+- Document all clarifications and decisions
+- Confirm understanding with the user before implementing
+
+This directive is non-negotiable. Proceeding with unclear requirements
+leads to wasted work and user frustration.
+
+## 14. User Confirmation Requirements
+
+Beyond phase gates, certain decisions require explicit user confirmation
+before implementation. The agent MUST NOT make these decisions unilaterally.
+
+**Decisions requiring user confirmation:**
+1. **Stack choices** — language, framework, database, hosting provider
+2. **Architecture decisions** — microservices vs monolith, sync vs async,
+   event-driven vs request-response
+3. **Third-party services** — payment providers, email services, CDNs, etc.
+4. **Security approach** — authentication method, encryption strategy,
+   compliance requirements
+5. **Deployment strategy** — cloud provider, region, scaling approach
+6. **Cost implications** — any decision with significant cost impact
+7. **Breaking changes** — API changes, data migrations, deprecations
+
+**Confirmation workflow:**
+1. **Present the decision.** Clearly state what needs to be decided.
+2. **Provide options.** Present 2-3 options with trade-offs (per §5).
+3. **Recommend an option.** State which option you recommend and why.
+4. **Ask for confirmation.** Explicitly ask: "Do you approve this decision?"
+5. **Wait for response.** Do NOT proceed until the user confirms.
+6. **Document the decision.** Record in `docs/SESSION.md` or an ADR.
+
+**Example confirmation:**
+```
+I need your confirmation on the database choice.
+
+Options:
+1. PostgreSQL (managed: Supabase) — relational, strong consistency, $25/mo
+2. MongoDB (managed: Atlas) — document, flexible schema, $30/mo
+3. DynamoDB (AWS) — key-value, serverless, pay-per-request
+
+Recommendation: PostgreSQL (Supabase) because your domain has strong
+relational requirements and you need ACID transactions for orders.
+
+Do you approve using PostgreSQL with Supabase?
+```
+
+**Never:**
+- Implement a decision without user confirmation
+- Assume silence means approval
+- Make cost-impacting decisions without explicit approval
+- Choose third-party services without user input
+- Proceed with breaking changes without confirmation
+
+**Always:**
+- Present options with trade-offs
+- Make a clear recommendation
+- Ask for explicit confirmation
+- Document the decision and rationale
+
+This directive is non-negotiable. User confirmation prevents misalignment
+and ensures the user is in control of key decisions.

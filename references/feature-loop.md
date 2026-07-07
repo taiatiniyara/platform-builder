@@ -30,6 +30,8 @@ Write `feature: <slug>` to `docs/SESSION.md`.
    public interface gets a docstring/typed signature; changed APIs update
    `docs/agents/contracts/`; CHANGELOG gets an entry. After REFACTOR,
    verify against `references/code-quality.md` § "Per-Issue Refactor".
+   Squash-merge to `main` with conventional commit message per
+   `references/git-strategy.md`. Delete branch.
    **Gate:** all new tests pass (unit, integration, e2e as appropriate), no
    regressions. Public interfaces documented. Linter + typechecker exit 0.
 
@@ -42,3 +44,6 @@ Update `docs/SESSION.md` after each step. If the feature changes the domain
 model, update `CONTEXT.md` inline. After the feature loop completes, run
 `/graphify .` to fully rebuild the graph for the next session. Update agent
 contracts in `docs/agents/contracts/` if API shape changed.
+
+**Verification:** run `scripts/validate-gate.sh 3` to verify implementation
+artifacts (tests, linter, typechecker, CHANGELOG, contracts).
