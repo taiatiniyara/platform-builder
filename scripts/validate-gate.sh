@@ -68,7 +68,9 @@ check_table_rows() {
     return 1
   fi
   # Count lines with | that aren't just headers (contain actual data)
-  local row_count=$(grep -E '^\|[^-]+\|' "$file" | grep -v '^\|[-:]+\|' | wc -l)
+  local separator_count=$(grep -cE '^\|[-:]+\|' "$file" 2>/dev/null || echo 0)
+  local row_count=$(grep -E '^\|[^-]+\|' "$file" | grep -vE '^\|[-:]+\|' | wc -l)
+  row_count=$((row_count - separator_count))
   if [[ $row_count -lt $min_rows ]]; then
     error "File $file has only $row_count table rows (expected at least $min_rows)"
     return 1
@@ -86,8 +88,13 @@ check_section_content() {
     return 1
   fi
   # Extract section content (from header to next header or EOF)
-  local content=$(awk "/^#+ .*${section}/,/^#+ /" "$file" | head -n -1)
-  local char_count=$(echo "$content" | wc -c)
+  local content=$(awk -v section="$section" '
+    BEGIN { found=0 }
+    $0 ~ "^#+ .*(" section ")" { found=1; next }
+    found && /^#+ / { exit }
+    found { print }
+  ' "$file")
+  local char_count=$(printf '%s' "$content" | wc -c)
   if [[ $char_count -lt $min_chars ]]; then
     error "Section '$section' in $file has only $char_count chars (expected at least $min_chars)"
     return 1
@@ -625,7 +632,7 @@ case "$PHASE" in
         error "docs/ARCHITECTURE.md doesn't mention auth flow"
       fi
       # Verify auth section has substantial content (not just a mention)
-      check_section_content "docs/ARCHITECTURE.md" "auth\|Auth\|AUTH" 100 || true
+      check_section_content "docs/ARCHITECTURE.md" "auth|Auth|AUTH" 100 || true
     fi
     
     # Verify validation/security patterns are documented
