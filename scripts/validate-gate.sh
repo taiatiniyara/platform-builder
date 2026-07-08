@@ -67,10 +67,9 @@ check_table_rows() {
     error "Missing file: $file"
     return 1
   fi
-  # Count lines with | that aren't just headers (contain actual data)
-  local separator_count=$(grep -cE '^\|[-:]+\|' "$file" 2>/dev/null || echo 0)
-  local row_count=$(grep -E '^\|[^-]+\|' "$file" | grep -vE '^\|[-:]+\|' | wc -l)
-  row_count=$((row_count - separator_count))
+  # Count data rows: lines with | that aren't headers or separators
+  # First grep gets header + data rows, tail skips header, leaving only data
+  local row_count=$(grep -E '^\|[^-]+\|' "$file" | tail -n +2 | wc -l)
   if [[ $row_count -lt $min_rows ]]; then
     error "File $file has only $row_count table rows (expected at least $min_rows)"
     return 1
@@ -88,11 +87,28 @@ check_section_content() {
     return 1
   fi
   # Extract section content (from header to next header or EOF)
+  # Skip the header line itself, capture until next header or EOF
+  # Remove all spaces for matching (UI/UX vs UI / UX)
   local content=$(awk -v section="$section" '
-    BEGIN { found=0 }
-    $0 ~ "^#+ .*(" section ")" { found=1; next }
-    found && /^#+ / { exit }
-    found { print }
+    {
+      line = $0
+      # Remove all spaces for comparison
+      normalized_line = line
+      gsub(/ /, "", normalized_line)
+      normalized_section = section
+      gsub(/ /, "", normalized_section)
+      
+      if (line ~ /^#+ /) {
+        # Check if this line contains the section name (normalized)
+        if (index(normalized_line, normalized_section) > 0) {
+          found=1
+          next
+        } else if (found) {
+          found=0
+        }
+      }
+      if (found) print
+    }
   ' "$file")
   local char_count=$(printf '%s' "$content" | wc -c)
   if [[ $char_count -lt $min_chars ]]; then
@@ -632,7 +648,7 @@ case "$PHASE" in
         error "docs/ARCHITECTURE.md doesn't mention auth flow"
       fi
       # Verify auth section has substantial content (not just a mention)
-      check_section_content "docs/ARCHITECTURE.md" "auth|Auth|AUTH" 100 || true
+      check_section_content "docs/ARCHITECTURE.md" "Auth" 100 || true
     fi
     
     # Verify validation/security patterns are documented
