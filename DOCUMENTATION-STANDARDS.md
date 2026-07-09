@@ -78,6 +78,15 @@ Creating or updating any documentation, API specs, runbooks, or onboarding mater
 - [ ] Public APIs documented
 - [ ] Comments explain why (not what)
 - [ ] Documentation updated with code changes
+- [ ] `scripts/verify.sh` returns 0
+- [ ] All domain terms consistent across docs (no term drift)
+- [ ] All cross-document links resolve (no broken references)
+- [ ] SESSION.md matches filesystem state
+- [ ] All ADRs listed in ADR index
+- [ ] No orphan docs (all docs referenced by at least one other doc)
+- [ ] No contradictions between any two docs
+- [ ] All ADR decisions reflected in implementation
+- [ ] Code matches what docs describe (no stale docs)
 
 ## Anti-patterns
 
