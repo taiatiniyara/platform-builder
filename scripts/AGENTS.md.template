@@ -1,0 +1,22 @@
+# Agent Instructions
+
+## This project uses platform-builder
+
+Before doing ANY work on this project, load the platform-builder skill. This ensures you follow the project's phase flow, standards, and enforcement gates.
+
+## State tracking
+
+Read `docs/SESSION.md` first to know what phase we're in and what's active.
+
+## Standards
+
+All `standards/*-STANDARDS.md` files apply. The pre-commit hook runs `scripts/check-standards.sh` on every commit. If it fails, the commit is blocked.
+
+## Key rules
+
+- One ticket per session
+- TDD (tests first)
+- Update `docs/SESSION.md` after every session
+- Run `scripts/check-standards.sh` before committing
+- Never skip the pre-commit checklist
+- Run a quality sweep per ticket: check-standards.sh + code smells + deepening opportunities + tech debt

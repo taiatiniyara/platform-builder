@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [ "${BASH_VERSINFO[0]:-0}" -lt 4 ]; then
+  echo "ERROR: bash 4.0+ required (found ${BASH_VERSION:-unknown})"
+  echo "  macOS: brew install bash"
+  exit 2
+fi
+
 STANDARDS_DIR="${1:-$PWD/standards}"
 STAGED_FILES=$(git diff --cached --name-only 2>/dev/null || echo "")
 DIFF_FILES=$(git diff --name-only 2>/dev/null || echo "")
+CHANGED_CONTENT=$( (git diff --cached -U0 2>/dev/null && git diff -U0 2>/dev/null) || echo "")
 FAILED=0
 PASSED=0
 declare -A APPLIES
@@ -14,131 +21,144 @@ ok()   { echo "PASS: $*"; PASSED=$((PASSED + 1)); }
 echo "=== STANDARDS COMPLIANCE CHECK ==="
 echo ""
 
-# maps glob patterns to standards files
+dedupe() {
+  local key="$1"
+  APPLIES["$key"]=1
+}
+
+# maps changed file paths to standards files
 determine_standards() {
   local files="$1"
+  local f
 
   APPLIES=()
+  declare -A APPLIES
 
   for f in $files; do
     case "$f" in
       *.ts|*.tsx|*.js|*.jsx|*.mjs|*.cjs)
-        APPLIES["CODE-QUALITY"]=1
-        APPLIES["TESTING"]=1
+        dedupe "CODE-QUALITY"
+        dedupe "TESTING"
         ;;
       *route*|*api*|*handler*|*controller*|*endpoint*|*middleware*)
-        APPLIES["API-DESIGN"]=1
-        APPLIES["SECURITY"]=1
-        APPLIES["PERFORMANCE"]=1
+        dedupe "API-DESIGN"
+        dedupe "SECURITY"
+        dedupe "PERFORMANCE"
         ;;
       *auth*|*login*|*session*|*token*|*password*|*secret*)
-        APPLIES["SECURITY"]=1
-        APPLIES["COMPLIANCE"]=1
+        dedupe "SECURITY"
+        dedupe "COMPLIANCE"
         ;;
       *.sql|*migration*|*database*|*db*|*query*|*model*|*schema*)
-        APPLIES["PERFORMANCE"]=1
-        APPLIES["DATA-MANAGEMENT"]=1
+        dedupe "PERFORMANCE"
+        dedupe "DATA-MANAGEMENT"
         ;;
       *test*|*.test.*|*.spec.*|*__tests__*)
-        APPLIES["TESTING"]=1
+        dedupe "TESTING"
         ;;
       *docker*|*deploy*|*.yml|*.yaml|Dockerfile|*terraform*|*kubernetes*)
-        APPLIES["DEPLOYMENT"]=1
-        APPLIES["RELIABILITY"]=1
+        dedupe "DEPLOYMENT"
+        dedupe "RELIABILITY"
         ;;
       *component*|*page*|*view*|*.css|*.scss|*.less|*style*|*.html|*.vue|*.svelte)
-        APPLIES["UX"]=1
-        APPLIES["PERFORMANCE"]=1
+        dedupe "UX"
+        dedupe "PERFORMANCE"
         ;;
       *i18n*|*locale*|*translation*|*lang*)
-        APPLIES["I18N"]=1
+        dedupe "I18N"
         ;;
       *log*|*metric*|*monitor*|*alert*|*trace*|*observe*|*sentry*|*datadog*)
-        APPLIES["OBSERVABILITY"]=1
+        dedupe "OBSERVABILITY"
         ;;
       *worker*|*queue*|*job*|*cron*|*scheduler*)
-        APPLIES["BACKGROUND-JOBS"]=1
+        dedupe "BACKGROUND-JOBS"
         ;;
       *search*|*elastic*|*algolia*|*meilisearch*|*typesense*)
-        APPLIES["SEARCH"]=1
+        dedupe "SEARCH"
         ;;
       *notification*|*email*|*sms*|*push*|*webhook*)
-        APPLIES["NOTIFICATIONS"]=1
+        dedupe "NOTIFICATIONS"
         ;;
       *websocket*|*ws*|*socket*|*realtime*|*live*|*pubsub*)
-        APPLIES["REALTIME"]=1
+        dedupe "REALTIME"
         ;;
       *analytics*|*tracking*|*event*|*telemetry*)
-        APPLIES["ANALYTICS"]=1
+        dedupe "ANALYTICS"
         ;;
       *doc*|*README*|*.md)
-        APPLIES["DOCUMENTATION"]=1
+        dedupe "DOCUMENTATION"
         ;;
       *billing*|*payment*|*pricing*|*subscription*|*stripe*)
-        APPLIES["MONETIZATION"]=1
+        dedupe "MONETIZATION"
         ;;
       *incident*|*oncall*|*runbook*|*pager*)
-        APPLIES["INCIDENT-MANAGEMENT"]=1
+        dedupe "INCIDENT-MANAGEMENT"
         ;;
       *rollout*|*feature-flag*|*launchdarkly*|*flagship*)
-        APPLIES["ROLLOUT"]=1
+        dedupe "ROLLOUT"
         ;;
       *.env*|*.toml|Makefile|package.json|tsconfig*|eslint*|prettier*)
-        APPLIES["DX"]=1
-        APPLIES["COST-MANAGEMENT"]=1
+        dedupe "DX"
+        dedupe "COST-MANAGEMENT"
         ;;
     esac
   done
 
-  APPLIES["CODE-QUALITY"]=1
-  APPLIES["SECURITY"]=1
+  dedupe "CODE-QUALITY"
+  dedupe "SECURITY"
 }
 
-# mechanical checks that can be verified automatically
+# mechanical checks verifiable automatically
 run_mechanical_checks() {
   echo "--- Mechanical Checks ---"
 
   # check: no console.log
   if echo "$STAGED_FILES $DIFF_FILES" | grep -qE '\.(ts|tsx|js|jsx|mjs|cjs)$'; then
-    if git diff --cached -U0 2>/dev/null | grep -qE '^\+.*console\.(log|warn|error|debug|info)\('; then
-      die "console.log/debug statements found in staged changes"
-    elif git diff -U0 2>/dev/null | grep -qE '^\+.*console\.(log|warn|error|debug|info)\('; then
+    if echo "$CHANGED_CONTENT" | grep -qE '^\+[^+].*console\.(log|warn|error|debug|info)\('; then
       die "console.log/debug statements found in changes"
     else
       ok "No console.log/debug statements"
     fi
+  else
+    ok "No JS/TS files changed"
   fi
 
   # check: no TODO without ticket reference
-  if git diff -U0 2>/dev/null | grep -qE '^\+.*TODO(?!.*\#[0-9]+|.*GH-[0-9]+|.*TICKET-[0-9]+).*$' 2>/dev/null; then
-    die "TODO without ticket reference found (use TODO(#123) or TODO(GH-123))"
+  if echo "$CHANGED_CONTENT" | grep -qE '^\+[^+].*TODO\b'; then
+    local bare_todos
+    bare_todos=$(echo "$CHANGED_CONTENT" | grep -E '^\+[^+].*TODO\b' | grep -vE '(#[0-9]+|GH-[0-9]+|TICKET-[0-9]+)' || echo "")
+    if [ -n "$bare_todos" ]; then
+      die "TODO without ticket reference found (use TODO(#123) or TODO(GH-123))"
+    else
+      ok "All TODOs have ticket references"
+    fi
   else
-    ok "No bare TODOs"
+    ok "No TODOs in changes"
   fi
 
   # check: no hardcoded secrets (basic pattern scan)
-  if git diff -U0 2>/dev/null | grep -qiE '^\+.*(password|secret|api_key|apikey|token)\s*[:=]\s*['\''"][^$]'; then
+  if echo "$CHANGED_CONTENT" | grep -qiE '^\+[^+].*(password|secret|api_key|apikey|token)\s*[:=]\s*['"'"'"][^$]'; then
     die "Possible hardcoded secret detected"
   else
     ok "No obvious hardcoded secrets"
   fi
 
-  # check: no .only in tests
-  if git diff -U0 2>/dev/null | grep -qE '^\+.*\.(only|skip)\(' ; then
-    die ".only() or .skip() found in tests — remove before commit"
+  # check: no .only / .skip in tests
+  if echo "$CHANGED_CONTENT" | grep -qE '^\+[^+].*\.(only|skip)\('; then
+    die ".only() or .skip() found — remove before commit"
   else
     ok "No .only() / .skip() in tests"
   fi
 
   # check: no commented-out code (heuristic)
-  if git diff -U0 2>/dev/null | grep -qE '^\+[[:space:]]*//[[:space:]]*(function|const|let|var|if|for|while|return|import|export|class)\b'; then
+  if echo "$CHANGED_CONTENT" | grep -qE '^\+[^+][[:space:]]*//[[:space:]]*(function|const|let|var|if|for|while|return|import|export|class)\b'; then
     die "Commented-out code found — delete, git has history"
   else
     ok "No commented-out code"
   fi
 }
 
-# print the relevant checklists for the user/agent to verify manually
+# print the relevant checklists for manual verification
 print_manual_checklists() {
   echo ""
   echo "--- Relevant Standards Checklists (verify manually) ---"
@@ -155,7 +175,7 @@ print_manual_checklists() {
 
 # main
 determine_standards "$STAGED_FILES $DIFF_FILES"
-run_mechanical_checks || true
+run_mechanical_checks
 
 echo ""
 echo "=== APPLICABLE STANDARDS ==="
@@ -168,8 +188,8 @@ if [ -d "$STANDARDS_DIR" ]; then
 else
   echo ""
   echo "WARNING: Standards directory '$STANDARDS_DIR' not found."
-  echo "  Pass the path to the platform-builder skill directory as argument:"
-  echo "  $0 /path/to/platform-builder"
+  echo "  Pass the path containing *-STANDARDS.md files as argument:"
+  echo "  $0 /path/to/standards"
 fi
 
 echo ""

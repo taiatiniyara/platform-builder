@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-# Append to .husky/pre-commit after husky init
+# Wire into .husky/pre-commit after husky init.
 # This runs automated standards checks before every commit.
 # If it fails, the commit is blocked.
 
-SCRIPT_DIR="$(dirname "$0")"
 PROJECT_ROOT="$(git rev-parse --show-toplevel)"
 STANDARDS_DIR="$PROJECT_ROOT/standards"
 

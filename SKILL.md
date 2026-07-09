@@ -23,7 +23,8 @@ Build whole platforms by orchestrating five phases. Each phase uses an existing 
 Run a relentless interview. Capture requirements in `docs/`:
 - Domain glossary → `CONTEXT.md`
 - Hard-to-reverse decisions → `docs/adr/`
-- Session tracker → `docs/SESSION.md` (copy from `scripts/SESSION.md.template`, agent fills in)
+- Session tracker → `docs/SESSION.md` (copy from `~/.config/opencode/skills/platform-builder/scripts/SESSION.md.template`)
+- Agent bootstrap → `AGENTS.md` in project root (copy from `~/.config/opencode/skills/platform-builder/scripts/AGENTS.md.template`)
 - UX, security, compliance, performance, observability, monetization, analytics, notifications, search, real-time, background jobs, rollout, incident management, cost management, DX
 
 **Exit criteria:** All requirement docs exist. User confirmed shared understanding.
@@ -47,6 +48,7 @@ Break decisions into implementation tickets (vertical slices).
 Before coding: verify tooling (lint, format, typecheck, security scanning, test framework, CI/CD, observability, design system). Create setup tickets if not.
 
 **Standards enforcement tooling (MANDATORY):**
+- Copy all `*-STANDARDS.md` files to the target project's `standards/` directory
 - Copy `scripts/check-standards.sh` into the target project's `scripts/` directory
 - Wire it into the pre-commit hook so it runs on every commit
 - The script reads `*-STANDARDS.md` files and exits with non-zero if any checklist item applicable to the current changes is not met
@@ -63,25 +65,16 @@ Every ticket must include acceptance criteria from relevant standards files (see
 For each ticket:
 1. Claim ticket
 2. Prefactor if needed
-3. Use `/tdd` (tests first)
+3. TDD (tests first)
 4. Minimal implementation
-5. Self-review (simplest solution? dead code? clearer?)
-6. **Standards compliance (MANDATORY — do not skip):**
-   a. Determine which standards files apply by reading each `*-STANDARDS.md` "Applies when" section
-   b. For every matching standard, go through its Checklist line by line and verify each item
-   c. Run `scripts/check-standards.sh` to mechanically cross-check
-   d. If any checklist item fails, fix before proceeding
-7. Pre-commit checklist:
-   a. `npm run typecheck` (or equivalent) — must pass
-   b. `npm run lint` (or equivalent) — must pass
-   c. `npm test` (or equivalent) — must pass
-   d. Security scan (gitleaks, npm audit, etc.) — must pass
-   e. No dead code, no secrets, no console.log, no TODO without ticket ref
-8. Commit and close ticket
-
-**Enforcement:** The pre-commit hook (set up in Phase 3) runs typecheck + lint + tests + security scan automatically.
-The `scripts/check-standards.sh` script must return exit code 0 before commit.
-No ticket can be marked done without all checklist items verified.
+5. Verify before commit:
+   a. Run `scripts/check-standards.sh` — fix all failures
+   b. Run `npm run typecheck`, `npm run lint`, `npm test` (or equivalents) — fix all failures
+   c. Read each applicable `*-STANDARDS.md` checklist, verify every item
+   d. Scan for code smells: god objects, deep nesting (>3), long param lists (>3), boolean params, magic numbers
+   e. Check for deepening opportunities and tech debt; document tech debt with ticket refs in SESSION.md
+   f. No dead code, no secrets, no console.log, no TODO without ticket ref
+6. Commit and update `docs/SESSION.md`
 
 **Exit criteria:** All tickets done. Tests pass. All standards checks passed.
 
@@ -94,7 +87,7 @@ Multi-axis review (parallel sub-agents):
 - **Spec** — matches originating issues
 - **Quality axes** — check all relevant `*-STANDARDS.md` files
 
-**Exit criteria:** Review report delivered. Issues addressed.
+**Exit criteria:** Review report delivered. Issues addressed. `docs/SESSION.md` status set to `complete`.
 
 ## Resuming After Closing
 
@@ -121,7 +114,7 @@ When the platform is shipped and you describe a new feature, the agent detects t
 1. **Mini-grill** — grill the new feature against existing docs. Update `CONTEXT.md` if the feature introduces new domain terms. Write an ADR only if it introduces a new hard-to-reverse decision. Update `docs/SESSION.md` phase to `feature`.
 2. **Mini-wayfind** — create investigation tickets if the feature touches uncharted architecture. Otherwise skip.
 3. **To-tickets** — break the feature into vertical-slice tickets. Reuse existing tooling and standards. Each ticket inherits acceptance criteria from the relevant `*-STANDARDS.md` files.
-4. **Implement** — same Phase 4 flow: claim, prefactor, TDD, implement, standards check, pre-commit, close. Update SESSION.md after each ticket.
+4. **Implement** — use the standard Phase 4 flow. Update SESSION.md after each ticket.
 5. **Review** — review the diff against standards and the feature spec. Update SESSION.md status to `complete`.
 
 Tooling persists from the original build. No setup needed.
@@ -134,17 +127,22 @@ Before each transition, verify all criteria are met and get user confirmation:
 - [ ] `CONTEXT.md` exists (≥5 terms)
 - [ ] ADRs exist (if decisions made)
 - [ ] All requirement docs exist in `docs/`
+- [ ] `AGENTS.md` exists in project root
+- [ ] `docs/SESSION.md` created and phase set to `2`
 - [ ] User confirmed shared understanding
 
 **Phase 2 → 3:**
 - [ ] Wayfinder map exists with `wayfinder:map` label
 - [ ] All wayfinder tickets closed
 - [ ] Prototypes created for critical architecture
+- [ ] `docs/SESSION.md` phase set to `3`
 
 **Phase 3 → 4:**
 - [ ] Implementation tickets published with all acceptance criteria
 - [ ] Tooling configured (lint, format, typecheck, security scanning, test framework, CI/CD, observability)
 - [ ] Design system in place
+- [ ] Standards scripts copied and wired into pre-commit
+- [ ] `docs/SESSION.md` phase set to `4`
 - [ ] User approved breakdown
 
 **Phase 4 → 5:**
@@ -152,9 +150,10 @@ Before each transition, verify all criteria are met and get user confirmation:
 - [ ] Tests pass (typecheck, lint, test suite, security tools)
 - [ ] All standards checks passed (`scripts/check-standards.sh` returns 0)
 - [ ] Security tooling passes (no secrets, no vulnerable dependencies)
+- [ ] Quality sweep completed: no code smells, no tech debt without tickets
 - [ ] Observability configured (logs, metrics, traces)
 - [ ] Documentation updated
-- [ ] `docs/SESSION.md` updated (phase, status, decisions)
+- [ ] `docs/SESSION.md` phase set to `5`
 
 ## SESSION.md
 
@@ -165,7 +164,7 @@ A living file at `docs/SESSION.md` tracks progress across invocations. The agent
 ```markdown
 # Session Tracking
 
-Phase: 3 (To Tickets)
+Phase: 3
 Status: in_progress
 Last active: 2026-07-10
 
@@ -193,8 +192,8 @@ Last active: 2026-07-10
 
 ## Key Principles
 
-1. **Never resolve more than one ticket per session** (wayfinder rule)
-2. **Clear context between tickets** (implement rule)
+1. **One ticket per session** — close current ticket before starting another (does not apply to feature mode's lightweight cycle)
+2. **Context via SESSION.md** — update `docs/SESSION.md` with active work and decisions at end of every session; next session picks up there
 3. **Docs before code** — CONTEXT.md and ADRs precede implementation
 4. **Decisions before tickets** — wayfinder resolves the path before to-tickets breaks it down
 5. **Vertical slices** — each ticket cuts through all layers
@@ -218,6 +217,7 @@ The pre-commit hook is the primary enforcement mechanism. If the agent forgets t
 ### Setup (Phase 3)
 
 ```bash
+cp ~/.config/opencode/skills/platform-builder/*-STANDARDS.md standards/
 cp ~/.config/opencode/skills/platform-builder/scripts/check-standards.sh scripts/
 cp ~/.config/opencode/skills/platform-builder/scripts/pre-commit-standards-hook.sh .husky/
 ```
