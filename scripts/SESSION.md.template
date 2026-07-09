@@ -1,0 +1,16 @@
+# Session Tracking
+
+Phase: 1 (Grill+Docs)
+Status: in_progress
+Last active: (set by agent)
+
+## Active work
+- Initial requirements gathering
+- Next step: define domain terms in CONTEXT.md
+
+## Recent decisions
+- (none yet)
+
+## Standards
+- Pre-commit hook: not configured
+- Last check: n/a
