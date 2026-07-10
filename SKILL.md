@@ -13,6 +13,14 @@ Five phases. Each delegates to an existing skill and gates on the verify protoco
 └─────────────────┘     └─────────────┘     └────────────┘     └────────────┘     └─────────┘
 ```
 
+## Phase 0: Scope
+
+**Before any gate-keeping, ask: which domains apply to this project?**
+
+Present the full domain list and let the user mark each as **needed**, **deferred** (for later phases), or **N/A** (not applicable). Record decisions in `docs/SESSION.md` under `## Domain scope`. Only needed domains gate Phase 1; deferred domains are tracked but don't block; N/A domains are never mentioned again.
+
+Full domain list: UX, security, compliance, performance, observability, monetization, analytics, notifications, search, real-time, background jobs, rollout, incident management, cost management, DX
+
 ## Phase 1: Grill + Document
 
 **Skill:** `/grill-with-docs`
@@ -22,7 +30,7 @@ Create in `docs/`:
 - `docs/adr/` — hard-to-reverse decisions
 - `docs/SESSION.md` — copy from `scripts/SESSION.md.template`
 - `docs/ux-principles.md` — who is this for, what problem does it solve, why would they love it and tell others
-- Domain docs: UX, security, compliance, performance, observability, monetization, analytics, notifications, search, real-time, background jobs, rollout, incident management, cost management, DX
+- Domain docs: only for domains marked **needed** in Phase 0 scope. Skip N/A domains silently.
 
 Also create `AGENTS.md` in project root — copy from `scripts/AGENTS.md.template`.
 
