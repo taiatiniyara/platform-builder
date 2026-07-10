@@ -21,13 +21,22 @@ Create in `docs/`:
 - `CONTEXT.md` — domain glossary (≥5 terms)
 - `docs/adr/` — hard-to-reverse decisions
 - `docs/SESSION.md` — copy from `scripts/SESSION.md.template`
+- `docs/ux-principles.md` — who is this for, what problem does it solve, why would they love it and tell others
 - Domain docs: UX, security, compliance, performance, observability, monetization, analytics, notifications, search, real-time, background jobs, rollout, incident management, cost management, DX
 
 Also create `AGENTS.md` in project root — copy from `scripts/AGENTS.md.template`.
 
+**People-love-it gate (non-negotiable):**
+- [ ] Who is the primary user? What do they feel before and after using this?
+- [ ] What do users hate about existing alternatives? How will this be different?
+- [ ] What is the "time-to-wow" — how many seconds until they see value?
+- [ ] What is the natural reason to tell a friend? (collaboration, comparison, sharing output, novelty)
+- [ ] What is the simplest possible version that still delivers delight?
+- [ ] Run the "mom test": would your mom understand what this does in one sentence?
+
 **Gate:**
 - [ ] All docs exist, CONTEXT.md has ≥5 terms
-- [ ] Run verify protocol
+- [ ] Run verify protocol (includes LOVABLE-STANDARDS.md checklist)
 - [ ] User confirms shared understanding
 
 ## Phase 2: Wayfind
@@ -36,9 +45,15 @@ Also create `AGENTS.md` in project root — copy from `scripts/AGENTS.md.templat
 
 Chart the path as investigation tickets. Create research/prototype tickets for each domain.
 
+In addition to architecture prototypes, create UX tickets:
+- [ ] What do users love and hate about existing alternatives? (research ticket)
+- [ ] Interactive UX prototype of the core "time-to-wow" path (prototype ticket)
+- [ ] Hallway test: show the prototype to 2+ people who've never seen it, record what confused them
+
 **Gate:**
 - [ ] Wayfinder map exists
 - [ ] All wayfinder tickets closed, prototypes exist for critical architecture
+- [ ] UX prototype exists for the core delight path, hallway-tested with ≥2 people
 - [ ] Run verify protocol — reconcile findings with CONTEXT.md and ADRs
 - [ ] SESSION.md phase → 3
 
@@ -46,7 +61,7 @@ Chart the path as investigation tickets. Create research/prototype tickets for e
 
 **Skill:** `/to-tickets`
 
-Break decisions into vertical-slice implementation tickets. Every ticket must include acceptance criteria from relevant `*-STANDARDS.md` files.
+Break decisions into vertical-slice implementation tickets. Every ticket must include acceptance criteria from relevant `*-STANDARDS.md` files, and **at least one loveability AC** from LOVABLE-STANDARDS.md (time-to-wow, simplicity, delight, shareability, error forgiveness, etc.).
 
 **Tooling setup (do before coding):**
 - Lint, format, typecheck, security scanning, test framework, CI/CD, observability, design system
@@ -55,6 +70,7 @@ Break decisions into vertical-slice implementation tickets. Every ticket must in
 
 **Gate:**
 - [ ] Tickets published, blocking edges wired, acceptance criteria complete
+- [ ] Every ticket has ≥1 loveability AC from LOVABLE-STANDARDS.md
 - [ ] Tooling configured, standards/scripts copied, pre-commit active
 - [ ] Run verify protocol — every ticket references correct CONTEXT.md terms and ADRs
 - [ ] SESSION.md phase → 4, user approves breakdown
@@ -68,12 +84,15 @@ Per ticket:
 2. Prefactor if needed
 3. TDD (tests first)
 4. Minimal implementation
-5. Run verify protocol (before commit)
-6. Commit, update SESSION.md
+5. **Simplicity check:** What did this ticket let us remove? If the answer is "nothing," pause — is the feature earning its complexity?
+6. **Show a human:** Before commit, show the working feature to one person who's never seen it. Watch silently. Fix what confused them.
+7. Run verify protocol (before commit)
+8. Commit, update SESSION.md
 
 **Gate:**
 - [ ] All tickets closed
 - [ ] Run verify protocol — all tests pass, no stale docs
+- [ ] Every ticket that touched UI was shown to ≥1 human before commit
 - [ ] SESSION.md phase → 5
 
 ## Phase 5: Review
@@ -85,10 +104,12 @@ Parallel sub-agents check:
 - **Spec** — matches originating issues
 - **Quality** — all `*-STANDARDS.md` files
 - **Docs** — term drift, stale references, contradictions, code alignment
+- **Lovable** — does the shipped software pass the LOVABLE-STANDARDS.md checklist? Is time-to-wow <30s? Would someone tell a friend about this? Is there a natural sharing reason? Is the voice human? Are errors blame-free? Is there undo on destructive actions?
 
 **Gate:**
 - [ ] Review report delivered, issues addressed
-- [ ] Run verify protocol
+- [ ] Run verify protocol (includes LOVABLE-STANDARDS.md — is it simple, delightful, shareable?)
+- [ ] "Show a friend" test: the reviewer (who hasn't built it) can use the core path without help
 - [ ] SESSION.md status → complete
 
 ## Resuming
@@ -111,11 +132,11 @@ Parallel sub-agents check:
 
 Lighter re-entry for post-ship features:
 
-1. **Mini-grill** — update CONTEXT.md if new terms, ADR only if hard-to-reverse
-2. **Mini-wayfind** — investigation tickets only if uncharted architecture; else skip
-3. **To-tickets** — vertical-slice tickets with inherited acceptance criteria
-4. **Implement** — standard Phase 4 flow per ticket
-5. **Review** — diff against standards + spec + docs
+1. **Mini-grill** — update CONTEXT.md if new terms, ADR only if hard-to-reverse. Re-answer the people-love-it questions for this feature specifically.
+2. **Mini-wayfind** — investigation tickets only if uncharted architecture; else skip. UX prototype only if the interaction is novel; else skip.
+3. **To-tickets** — vertical-slice tickets with inherited acceptance criteria. Every ticket still gets ≥1 loveability AC.
+4. **Implement** — standard Phase 4 flow per ticket (simplicity check + show a human before commit).
+5. **Review** — diff against standards + spec + docs + lovable checklist.
 
 Run verify protocol after every step. Tooling persists; no re-setup needed.
 
@@ -128,8 +149,9 @@ Runs at **every phase gate, every pre-commit, every review.** No exceptions.
 2. npm run typecheck        → fix all failures (skip if no code yet)
 3. npm run lint             → fix all failures (skip if no code yet)
 4. npm test                 → fix all failures (skip if no code yet)
-5. Manual: read applicable *-STANDARDS.md checklists, verify every item
-6. Manual: read all docs in docs/, check:
+5. Manual: read LOVABLE-STANDARDS.md and UX-STANDARDS.md checklists, verify every item
+6. Manual: read all other applicable *-STANDARDS.md checklists, verify every item
+7. Manual: read all docs in docs/, check:
    - All CONTEXT.md terms used consistently (no synonyms, no drift)
    - All ADR decisions reflected in tickets + code
    - No two docs contradict each other
@@ -177,6 +199,10 @@ Last active: 2026-07-10
 ## Standards
 - Pre-commit: active | not configured
 - Last check: passed | failed (date)
+## Lovable checks
+- Time-to-wow: <N>s (last measured: date)
+- Hallway tests: <N> people (last test: date)
+- Simplicity audit: what did we remove last sprint?
 ```
 
 **Rules:** Phase is `1`–`5` or `feature`. Status is `in_progress`, `blocked`, or `complete`. Keep entries one line. Do not proceed past a gate with unresolved drift items.
@@ -192,6 +218,7 @@ Last active: 2026-07-10
 7. **YAGNI** — build only what the ticket asks
 8. **Verify protocol blocks all** — no commit, no gate, no review passes without it
 9. **No stale docs, no term drift** — unify at every step
+10. **Simple, delightful, shareable** — every feature must reduce user effort, create a moment of joy, or give a reason to tell someone. Check LOVABLE-STANDARDS.md at every gate.
 
 ## Standards Files
 
