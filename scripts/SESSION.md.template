@@ -12,15 +12,10 @@ Last active: [agent fills in date]
 - observability: needed | deferred | N/A
 - monetization: needed | deferred | N/A
 - analytics: needed | deferred | N/A
-- notifications: needed | deferred | N/A
 - search: needed | deferred | N/A
 - real-time: needed | deferred | N/A
 - background-jobs: needed | deferred | N/A
-- rollout: needed | deferred | N/A
-- incident-management: needed | deferred | N/A
 - cost-management: needed | deferred | N/A
-- dx: needed | deferred | N/A
-- i18n: needed | deferred | N/A
 
 ## Active work
 - Initial requirements gathering

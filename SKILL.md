@@ -25,7 +25,7 @@ done
 Present domain list (ux, security, compliance, performance, observability, monetization, analytics, search, real-time, background-jobs, cost-management). User marks each needed/deferred/N/A. Always-on (code-quality, data-management, deployment, reliability, api-design, documentation) not presented. Record in `docs/SESSION.md`.
 
 ## Phase 1: Grill + Docs → `/grill-with-docs`
-`docs/CONTEXT.md` (≥5 terms), `docs/adr/`, `docs/SESSION.md`, `docs/ux-principles.md`, `AGENTS.md` (from templates), `<domain>.md` per needed domain. Gate: docs exist, people-love-it checklist passed, verify protocol green, user confirms.
+Create `docs/CONTEXT.md` (≥5 terms), `docs/adr/`, `docs/SESSION.md` (from `scripts/SESSION.md.template`), `docs/ux-principles.md`, `AGENTS.md` (from `scripts/AGENTS.md.template`), and `<domain>.md` per needed domain. Gate: docs exist, people-love-it checklist passed, verify protocol green, user confirms.
 
 ## Phase 2: Wayfind → `/wayfinder`
 Investigation tickets + UX prototype of core "time-to-wow" path, hallway-tested (≥2 people). Gate: map exists, tickets closed, prototype done, verify protocol, SESSION.md → 3.
@@ -46,8 +46,22 @@ Gate: all closed, verify protocol, SESSION.md → 5.
 ## Phase 5: Review → `/review`
 Parallel sub-agents on standards, spec, quality, docs, lovable. Gate: issues addressed, verify protocol, hallway by reviewer, SESSION.md → complete.
 
-## Resuming
-Read `docs/SESSION.md`, detect phase. If `graphify-out/graph.json` exists, run `/graphify . --update` first to sync with filesystem, then query it for context before reading any file. No artifacts → P1. Docs only → P2. Map open → P2. Map closed, no impl tickets → P3. Impl tickets open → P4. All closed → P5. Review done → Feature mode.
+## Session Startup
+
+**Every session starts here. No exceptions.** Before any work:
+
+1. Run `bash scripts/startup.sh $PWD` — blocks if skills missing, standards absent, or SESSION.md invalid
+2. Read `docs/SESSION.md` — the `Phase` field determines what you're allowed to do
+3. If `graphify-out/graph.json` exists, run `/graphify . --update` before any graph query
+
+**Phase enforcement rules:**
+- Phase in SESSION.md is the gatekeeper. Do not skip phases.
+- If Phase is N, you cannot do work from Phase N+1 or higher.
+- If you finish a phase's gate, update SESSION.md to the next phase before starting it.
+- After Phase 5 review passes, set Phase to `feature` and Status to `complete`.
+- If you're blocked, set `Status: blocked` with a reason — do not proceed past a blocked state.
+
+**Resume detection:** No artifacts → P1. Docs only → P2. Map open → P2. Map closed, no impl tickets → P3. Impl tickets open → P4. All closed → P5. Review done → feature.
 
 ## Feature Mode
 Mini-grill → mini-wayfind (skip if known) → to-tickets → `/graphify . --update` → implement (simplicity + hallway + verify per ticket) → review. Verify after every step.
@@ -61,6 +75,7 @@ Runs at every gate, pre-commit, and review. No exceptions.
 5. Manual: UX-STANDARDS.md lovability checklist, every item
 6. Manual: all domain *-STANDARDS.md checklists, every item
 7. Manual: all docs/ — term consistency, no contradictions, no stale docs, SESSION.md matches reality
+8. Gate check: SESSION.md Phase must match what you're doing. If you just completed Phase 2's gate, Phase must be 3 before starting Phase 3 work.
 All pass → proceed. Any fail → blocked.
 
 ## Tooling Setup (Phase 3)
@@ -68,6 +83,7 @@ All pass → proceed. Any fail → blocked.
 SKILL_DIR="${SKILL_DIR:-$HOME/.config/opencode/skills/platform-builder}"
 cp "$SKILL_DIR"/*-STANDARDS.md standards/
 cp "$SKILL_DIR"/scripts/verify.sh scripts/
+cp "$SKILL_DIR"/scripts/startup.sh scripts/
 mkdir -p .husky
 cp "$SKILL_DIR"/scripts/pre-commit-standards-hook.sh .husky/
 python3 -m pip install graphifyy -q --break-system-packages 2>/dev/null || true

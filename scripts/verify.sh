@@ -30,58 +30,6 @@ echo ""
 
 echo "--- Code Standards ---"
 
-dedupe() { APPLIES["$1"]=1; }
-
-determine_standards() {
-  local files="$1" f
-  declare -A APPLIES
-
-  for f in $files; do
-    case "$f" in
-      *.ts|*.tsx|*.js|*.jsx|*.mjs|*.cjs)
-        dedupe "CODE-QUALITY"; dedupe "TESTING" ;;
-      *route*|*api*|*handler*|*controller*|*endpoint*|*middleware*)
-        dedupe "API-DESIGN"; dedupe "SECURITY"; dedupe "PERFORMANCE" ;;
-      *auth*|*login*|*session*|*token*|*password*|*secret*)
-        dedupe "SECURITY"; dedupe "COMPLIANCE" ;;
-      *.sql|*migration*|*database*|*db*|*query*|*model*|*schema*)
-        dedupe "PERFORMANCE"; dedupe "DATA-MANAGEMENT" ;;
-      *test*|*.test.*|*.spec.*|*__tests__*)
-        dedupe "TESTING" ;;
-      *docker*|*deploy*|*.yml|*.yaml|Dockerfile|*terraform*|*kubernetes*)
-        dedupe "DEPLOYMENT"; dedupe "RELIABILITY" ;;
-      *component*|*page*|*view*|*.css|*.scss|*.less|*style*|*.html|*.vue|*.svelte)
-        dedupe "UX"; dedupe "PERFORMANCE" ;;
-      *i18n*|*locale*|*translation*|*lang*)
-        dedupe "I18N" ;;
-      *log*|*metric*|*monitor*|*alert*|*trace*|*observe*|*sentry*|*datadog*)
-        dedupe "OBSERVABILITY" ;;
-      *worker*|*queue*|*job*|*cron*|*scheduler*)
-        dedupe "BACKGROUND-JOBS" ;;
-      *search*|*elastic*|*algolia*|*meilisearch*|*typesense*)
-        dedupe "SEARCH" ;;
-      *notification*|*email*|*sms*|*push*|*webhook*)
-        dedupe "NOTIFICATIONS" ;;
-      *websocket*|*ws*|*socket*|*realtime*|*live*|*pubsub*)
-        dedupe "REALTIME" ;;
-      *analytics*|*tracking*|*event*|*telemetry*)
-        dedupe "ANALYTICS" ;;
-      *doc*|*README*|*.md)
-        dedupe "DOCUMENTATION" ;;
-      *billing*|*payment*|*pricing*|*subscription*|*stripe*)
-        dedupe "MONETIZATION" ;;
-      *incident*|*oncall*|*runbook*|*pager*)
-        dedupe "INCIDENT-MANAGEMENT" ;;
-      *rollout*|*feature-flag*|*launchdarkly*|*flagship*)
-        dedupe "ROLLOUT" ;;
-      *.env*|*.toml|Makefile|package.json|tsconfig*|eslint*|prettier*)
-        dedupe "DX"; dedupe "COST-MANAGEMENT" ;;
-    esac
-  done
-  dedupe "CODE-QUALITY"
-  dedupe "SECURITY"
-}
-
 mechanical_code_checks() {
   if echo "$STAGED_FILES $DIFF_FILES" | grep -qE '\.(ts|tsx|js|jsx|mjs|cjs)$'; then
     if echo "$CHANGED_CONTENT" | grep -qE '^\+[^+].*console\.(log|warn|error|debug|info)\('; then
@@ -114,32 +62,7 @@ mechanical_code_checks() {
     ok "No commented-out code"
   fi
 }
-
-print_applicable_standards() {
-  echo ""
-  for standard in "${!APPLIES[@]}"; do
-    echo "  - $standard"
-  done
-  if [ -d "$STANDARDS_DIR" ]; then
-    echo ""
-    echo "--- Relevant Checklist Items (verify manually) ---"
-    for standard in "${!APPLIES[@]}"; do
-      local std_file="$STANDARDS_DIR/$standard-STANDARDS.md"
-      if [ -f "$std_file" ]; then
-        echo ""
-        echo ">>> $standard"
-        grep '^\s*- \[ \]' "$std_file" 2>/dev/null || echo "  (no checklist items)"
-      fi
-    done
-  fi
-}
-
-determine_standards "$STAGED_FILES $DIFF_FILES"
 mechanical_code_checks
-
-echo ""
-echo "--- Applicable Standards ---"
-print_applicable_standards
 
 # ═══════════════════════════════════════════════════════════════
 # PART 2: DOC UNIFICATION
@@ -256,7 +179,7 @@ fi
 
 # Key standards existence (Phase 3+)
 if [ -d "$STANDARDS_DIR" ]; then
-  for key_std in LOVABLE-STANDARDS.md UX-STANDARDS.md SECURITY-STANDARDS.md; do
+  for key_std in UX-STANDARDS.md CODE-QUALITY-STANDARDS.md SECURITY-STANDARDS.md; do
     if [ -f "$STANDARDS_DIR/$key_std" ]; then
       ok "$key_std present in standards/"
     else

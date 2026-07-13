@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PROJECT_ROOT="${1:-$PWD}"
+FAILED=0
+
+ok()   { echo "  OK: $*"; }
+fail() { echo "FAIL: $*"; FAILED=$((FAILED + 1)); }
+skip() { echo "SKIP: $*"; }
+
+echo "=== PLATFORM-BUILDER STARTUP ==="
+echo ""
+
+# 1. Skills check
+echo "-- Required skills --"
+required=(grill-with-docs wayfinder to-tickets implement review grilling domain-modeling prototype tdd code-review setup-matt-pocock-skills)
+for skill in "${required[@]}"; do
+  if [ -d "$HOME/.agents/skills/$skill" ]; then
+    ok "$skill"
+  else
+    fail "$skill — run: npx skills add mattpocock/skills -y -g"
+  fi
+done
+
+echo ""
+echo "-- Project health --"
+
+# 2. SESSION.md
+SESSION_FILE="$PROJECT_ROOT/docs/SESSION.md"
+if [ -f "$SESSION_FILE" ]; then
+  PHASE=$(grep -E '^Phase:' "$SESSION_FILE" | sed 's/Phase: *//' | xargs)
+  ok "SESSION.md exists (Phase $PHASE)"
+else
+  fail "SESSION.md not found at $SESSION_FILE"
+fi
+
+# 3. Standards files
+STANDARDS_DIR="$PROJECT_ROOT/standards"
+if [ -d "$STANDARDS_DIR" ] && [ -n "$(ls -A "$STANDARDS_DIR" 2>/dev/null)" ]; then
+  count=$(ls -1 "$STANDARDS_DIR"/*-STANDARDS.md 2>/dev/null | wc -l)
+  ok "Standards dir: $count files"
+else
+  fail "standards/ missing or empty — run Phase 3 tooling setup"
+fi
+
+# 4. Scripts
+for script in verify.sh; do
+  if [ -f "$PROJECT_ROOT/scripts/$script" ]; then
+    ok "scripts/$script"
+  else
+    fail "scripts/$script missing"
+  fi
+done
+
+# 5. Pre-commit hook
+if [ -f "$PROJECT_ROOT/.husky/pre-commit" ]; then
+  if grep -q "pre-commit-standards-hook" "$PROJECT_ROOT/.husky/pre-commit" 2>/dev/null; then
+    ok "Pre-commit hook wired"
+  else
+    fail "Pre-commit hook not wired to standards hook"
+  fi
+else
+  fail ".husky/pre-commit missing"
+fi
+
+# 6. Graphify (if applicable — Phase 4+)
+if [ -n "${PHASE:-}" ] && [ "$PHASE" -ge 4 ] 2>/dev/null; then
+  if python3 -c "import graphify" 2>/dev/null; then
+    if [ -f "$PROJECT_ROOT/graphify-out/graph.json" ]; then
+      ok "Graph exists — run '/graphify . --update' to sync before querying"
+    else
+      skip "Graphify installed but no graph yet — run '/graphify .' to build"
+    fi
+  else
+    skip "Graphify not installed — graph queries unavailable, read files directly"
+  fi
+else
+  skip "Graphify not needed yet (Phase ${PHASE:-0})"
+fi
+
+echo ""
+echo "=== RESULT ==="
+if [ "$FAILED" -gt 0 ]; then
+  echo "STARTUP FAILED ($FAILED issue(s)) — fix above before proceeding."
+  exit 1
+fi
+echo "STARTUP OK — session ready."
+exit 0
