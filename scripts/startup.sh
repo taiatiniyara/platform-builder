@@ -31,7 +31,20 @@ if [ -f "$SESSION_FILE" ]; then
   PHASE=$(grep -E '^Phase:' "$SESSION_FILE" | sed 's/Phase: *//' | xargs)
   ok "SESSION.md exists (Phase $PHASE)"
 else
-  fail "SESSION.md not found at $SESSION_FILE"
+  HAS_CODE=false
+  for dir in src lib app packages; do
+    if [ -d "$PROJECT_ROOT/$dir" ] && [ -n "$(ls -A "$PROJECT_ROOT/$dir" 2>/dev/null)" ]; then
+      HAS_CODE=true; break
+    fi
+  done
+  if [ -f "$PROJECT_ROOT/package.json" ] || [ -f "$PROJECT_ROOT/pyproject.toml" ] || [ -f "$PROJECT_ROOT/Cargo.toml" ]; then
+    HAS_CODE=true
+  fi
+  if [ "$HAS_CODE" = true ]; then
+    fail "SESSION.md not found — this looks like an existing project. Run platform-builder bootstrap mode: create docs/SESSION.md with Phase=2 and follow the Bootstrap section in SKILL.md"
+  else
+    fail "SESSION.md not found at $SESSION_FILE"
+  fi
 fi
 
 # 3. Standards files
@@ -63,8 +76,22 @@ else
   fail ".husky/pre-commit missing"
 fi
 
-# 6. Graphify (required Phase 3+)
+# 6. Graphify (required Phase 3+, or Phase 2 with existing code)
+GRAPH_REQUIRED=false
 if [ -n "${PHASE:-}" ] && [ "$PHASE" -ge 3 ] 2>/dev/null; then
+  GRAPH_REQUIRED=true
+elif [ "${PHASE:-}" = "2" ] 2>/dev/null; then
+  HAS_CODE=false
+  for dir in src lib app packages; do
+    if [ -d "$PROJECT_ROOT/$dir" ] && [ -n "$(ls -A "$PROJECT_ROOT/$dir" 2>/dev/null)" ]; then
+      HAS_CODE=true; break
+    fi
+  done
+  [ -f "$PROJECT_ROOT/package.json" ] || [ -f "$PROJECT_ROOT/pyproject.toml" ] || [ -f "$PROJECT_ROOT/Cargo.toml" ] && HAS_CODE=true
+  [ "$HAS_CODE" = true ] && GRAPH_REQUIRED=true
+fi
+
+if [ "$GRAPH_REQUIRED" = true ]; then
   if python3 -c "import graphify" 2>/dev/null; then
     ok "Graphify installed"
     if [ -f "$PROJECT_ROOT/graphify-out/graph.json" ]; then

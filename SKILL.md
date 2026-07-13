@@ -77,6 +77,22 @@ Parallel sub-agents on standards, spec, quality, docs, lovable, **ux** (dedicate
 
 **Resume detection:** No artifacts → P1. Docs only → P2. Map open → P2. Map closed, no impl tickets → P3. Impl tickets open → P4. All closed → P5. Review done → feature.
 
+## Bootstrap Mode (existing projects)
+
+When platform-builder is loaded on a project that has code but no `docs/SESSION.md`, `standards/`, or `AGENTS.md`, the project was not created by platform-builder. Do not run the standard Phase 0 flow. Instead, bootstrap:
+
+1. **Detect:** Code exists (e.g. `src/`, `package.json`, `pyproject.toml`) but `docs/SESSION.md` is missing.
+2. **Graph first:** Run `/graphify .` to map the existing codebase. This is the single highest-value first step.
+3. **Domain scope:** Present the domain list (same as Phase 0). User marks each needed/deferred/N/A. Record in SESSION.md.
+4. **Infer design system:** Analyze existing UI code (CSS, components, theme files) — extract colors, typography, spacing, component inventory. Create `docs/design-system.md` from findings. If no UI exists, mark as API-only.
+5. **Create docs:** Create `docs/SESSION.md` (Phase = 2, Status = in_progress), `docs/CONTEXT.md` (≥5 terms from codebase analysis), `docs/ux-principles.md`, `AGENTS.md` (from template), and `<domain>.md` per needed domain.
+6. **Audit UX:** Walk the existing UI against UX-STANDARDS.md. File loveability tickets for every violation found — these become the first batch of implementation tickets.
+7. **Set up tooling:** Copy standards files, install verify.sh, wire pre-commit hook (same as Phase 3 tooling setup).
+8. **Gate:** docs exist, graph exists (verify.sh confirms), UX audit filed as tickets, user approves.
+9. **Promote:** Set SESSION.md Phase = 3, Status = in_progress. Resume normal Phase 3 → Phase 4 → Phase 5 flow.
+
+**Bootstrap rationale:** The project already has direction (no need to grill/wayfind from scratch), but it lacks platform-builder discipline (no standards enforcement, no design system, no graph). Bootstrapping brings the gap-closing artifacts online without the greenfield overhead.
+
 ## Feature Mode
 Mini-grill → mini-wayfind (skip if known) → to-tickets → `/graphify . --update` → implement (simplicity + hallway + verify per ticket) → review. Verify after every step. Every UI ticket must have a UX checklist section — same as Phase 3 rule.
 
