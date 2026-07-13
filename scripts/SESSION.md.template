@@ -4,6 +4,11 @@ Phase: 1
 Status: in_progress
 Last active: [agent fills in date]
 
+## Design system
+- Framework: [e.g. Tailwind CSS + shadcn/ui, NextUI, MUI, Chakra, API-only]
+- Design system doc: [e.g. docs/design-system.md; N/A if API-only]
+- Last audit: never
+
 ## Domain scope
 - ux: needed | deferred | N/A
 - security: needed | deferred | N/A
@@ -36,3 +41,5 @@ Last active: [agent fills in date]
 - Time-to-wow: unknown (last measured: never)
 - Hallway tests: 0 people (last test: never)
 - Simplicity audit: nothing removed yet
+- Design system compliance: not checked
+- a11y audit: not run

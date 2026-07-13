@@ -4,11 +4,37 @@ This project uses platform-builder. Load the skill before any work.
 
 ## Rules
 
+### Rule 0: UX is non-negotiable
+Before writing any UI code:
+1. Read `standards/UX-STANDARDS.md` — know the checklist
+2. Read `docs/design-system.md` — use ONLY these tokens and components
+3. Never ship raw CSS, inline styles, or ad-hoc colors/spacing/typography
+4. Every component handles ALL states: loading, empty, error, success, disabled, hover, focus, active
+5. Every interaction is deliberate — transitions follow design system motion specs
+6. Accessibility is table stakes, not a nice-to-have (WCAG 2.1 AA minimum)
+
+### Development Rules
 1. Read `docs/SESSION.md` first — it's where we are
 2. One ticket per session
 3. TDD — tests first
-4. Before every commit: run `scripts/verify.sh`, fix all failures
-5. Manual verify: applicable STANDARDS.md checklists + all docs (term consistency, no contradictions, no stale docs)
-6. Update `docs/SESSION.md` after every session
-7. `scripts/verify.sh` exits non-zero → blocked. Fix everything before proceeding.
-8. Never pin outdated versions. Before adding a dependency, run `pnpm install <pkg>` to get the latest. Use `latest` or `^major` ranges in package.json — let pnpm resolve. Never guess version numbers.
+4. **Graphify sync is mandatory (Phase 3+).** Before every session and before every commit: run `/graphify . --update`. Prefer graph queries over file reads — saves tokens and keeps context small.
+5. Before every commit: run `scripts/verify.sh`, fix all failures
+6. Manual verify: applicable STANDARDS.md checklists + all docs (term consistency, no contradictions, no stale docs)
+7. Update `docs/SESSION.md` after every session
+8. `scripts/verify.sh` exits non-zero → blocked. Fix everything before proceeding.
+9. Never pin outdated versions. Before adding a dependency, run `pnpm install <pkg>` to get the latest. Use `latest` or `^major` ranges in package.json — let pnpm resolve. Never guess version numbers.
+
+### UI Checklist (walk through before marking any ticket done)
+- [ ] Uses design system components (no raw HTML where a component exists)
+- [ ] Uses design tokens (no hardcoded hex/rgb/px values outside design system)
+- [ ] Handles loading state (skeleton, spinner with intent, progress bar)
+- [ ] Handles empty state (helpful message, clear next action)
+- [ ] Handles error state (gentle, blame-free, with recovery path)
+- [ ] Handles success state (celebrates user action, shows result)
+- [ ] Keyboard navigable (Tab, Enter, Escape, arrow keys)
+- [ ] Screen reader friendly (aria labels, semantic HTML, live regions)
+- [ ] Touch targets ≥44x44px
+- [ ] No layout shift (fixed dimensions, skeleton placeholders)
+- [ ] Optimistic UI where possible (action appears done before server confirms)
+- [ ] Transitions <300ms, feel physical (acceleration/deceleration)
+- [ ] No lorem ipsum, no "contact support" as primary CTA, no generic spinners

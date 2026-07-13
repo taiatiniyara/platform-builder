@@ -4,7 +4,24 @@
 
 Building any user-facing feature, interaction, or UI string.
 
-## Checklist
+## Design System Compliance (MUST PASS FIRST)
+
+These are programmatic constraints — verifiable by grep and lint, not subjective:
+
+- [ ] No hardcoded hex colors — use design system CSS variables or theme tokens
+- [ ] No hardcoded px values for spacing (margin, padding, gap) — use design system spacing scale
+- [ ] No hardcoded font-size/weight/family — use design system typography scale
+- [ ] No raw HTML elements where a design system component exists (no `<button>` if Button component exists, no `<input>` if Input component exists)
+- [ ] No inline styles or CSS-in-JS outside the design system theme file
+- [ ] Consistent border-radius from design system (no arbitrary rounding)
+- [ ] Consistent shadow/elevation from design system (no arbitrary box-shadows)
+- [ ] All colors pass WCAG AA contrast (≥4.5:1 normal text, ≥3:1 large text)
+
+Run: `grep -rn '#[0-9a-fA-F]\{3,6\}' src/` — every match must be a design token name comment or in the theme file. Fail if any raw hex exists in component code.
+
+## Per-Ticket UX Checklist Template
+
+When creating a UI ticket, copy this section into the ticket and mark which items apply. When implementing, check each applicable item before marking the ticket done.
 
 ### Time-to-Wow
 - [ ] First-run value in <30s (no signup wall, no tutorial) — demo visible before commitment
@@ -64,3 +81,15 @@ Building any user-facing feature, interaction, or UI string.
 - [ ] Dates/numbers/currency use locale; stored UTC, displayed in user's timezone
 - [ ] RTL supported (Arabic, Hebrew): CSS logical props, dir="rtl", mirrored layout
 - [ ] Translation management system (Crowdin, Transifex); native speaker review
+
+## Automated UX Checks
+
+These should be wired into CI (Phase 3+):
+
+1. **a11y audit:** `npx @axe-core/cli <url>` or `npx playwright test --config=a11y.config.ts` — zero violations
+2. **Contrast check:** `npx color-contrast-checker` or CI step that scans CSS variables for passing combos
+3. **Lighthouse CI:** performance ≥90, accessibility =100, best-practices ≥90, SEO ≥90
+4. **Visual regression:** Percy/Chromatic/Playwright screenshot diff on PR — no unintended visual changes
+5. **Bundle size:** No page >200KB JS (uncompressed), no CSS >50KB
+6. **Dead style audit:** `npx purgecss` or framework equivalent — no unused CSS shipped
+7. **HTML validation:** `npx html-validate` — no invalid HTML structure

@@ -189,6 +189,138 @@ if [ -d "$STANDARDS_DIR" ]; then
 fi
 
 # ═══════════════════════════════════════════════════════════════
+# PART 2.5: GRAPHIFY ENFORCEMENT
+# ═══════════════════════════════════════════════════════════════
+
+echo ""
+echo "--- Graphify ---"
+
+GRAPHFILE="$PROJECT_ROOT/graphify-out/graph.json"
+
+if [ -n "${PHASE:-}" ] && [ "$PHASE" -ge 3 ] 2>/dev/null; then
+  if python3 -c "import graphify" 2>/dev/null; then
+    ok "Graphify installed"
+
+    if [ -f "$GRAPHFILE" ]; then
+      ok "graph.json exists"
+
+      LAST_GRAPH=$(stat -c %Y "$GRAPHFILE" 2>/dev/null || stat -f %m "$GRAPHFILE" 2>/dev/null)
+      NOW=$(date +%s)
+      AGE_HOURS=$(( (NOW - LAST_GRAPH) / 3600 ))
+
+      if [ "$AGE_HOURS" -gt 24 ]; then
+        die "graph.json is $AGE_HOURS hours stale — run '/graphify . --update'"
+      elif [ "$AGE_HOURS" -gt 4 ]; then
+        warn "graph.json is $AGE_HOURS hours old — consider running '/graphify . --update'"
+      else
+        ok "graph.json is fresh ($AGE_HOURS hours old)"
+      fi
+    else
+      die "graph.json not found — run '/graphify .' to build initial graph"
+    fi
+  else
+    die "graphifyy not installed — run: uv tool install graphifyy"
+  fi
+else
+  skip "Graphify not required (Phase ${PHASE:-0})"
+fi
+
+# ═══════════════════════════════════════════════════════════════
+# PART 3: UX STANDARDS (DESIGN SYSTEM + ACCESSIBILITY)
+# ═══════════════════════════════════════════════════════════════
+
+echo ""
+echo "--- UX Standards ---"
+
+DESIGN_SYSTEM_DOC="$PROJECT_ROOT/docs/design-system.md"
+UX_STANDARDS_FILE="$STANDARDS_DIR/UX-STANDARDS.md"
+
+# UX doc existence
+if [ -f "$DESIGN_SYSTEM_DOC" ]; then
+  ok "docs/design-system.md exists"
+else
+  die "docs/design-system.md missing — define design tokens and components before writing UI code"
+fi
+
+if [ -f "$UX_STANDARDS_FILE" ]; then
+  ok "UX-STANDARDS.md present in standards/"
+else
+  die "UX-STANDARDS.md missing from standards/"
+fi
+
+# Raw hex colors in source (exclude theme/config/design-system files)
+RAW_HEX=$(echo "$CHANGED_CONTENT" | grep -E '^\+[^+].*#[0-9a-fA-F]{3,6}' | grep -vE '(theme|config|design-system|tokens|variables|\.json|\.css\.d\.ts)' || echo "")
+if [ -n "$RAW_HEX" ]; then
+  die "Raw hex colors found — use design system tokens instead. Found: $(echo "$RAW_HEX" | head -3 | tr '\n' ' ')"
+else
+  ok "No raw hex colors in component code"
+fi
+
+# Hardcoded px values in margin/padding/gap (exclude theme files)
+RAW_PX=$(echo "$CHANGED_CONTENT" | grep -E '^\+[^+].*(margin|padding|gap|spacing|height|width)\s*[:=]\s*[0-9]+px' | grep -vE '(theme|config|design-system|tokens|variables)' || echo "")
+if [ -n "$RAW_PX" ]; then
+  warn "Hardcoded px values for spacing found — use design system spacing scale"
+else
+  ok "No hardcoded px spacing values"
+fi
+
+# Hardcoded font sizes (exclude theme files)
+RAW_FONT=$(echo "$CHANGED_CONTENT" | grep -E '^\+[^+].*font-size\s*[:=]\s*[0-9.]+(px|rem|em)' | grep -vE '(theme|config|design-system|tokens|variables)' || echo "")
+if [ -n "$RAW_FONT" ]; then
+  warn "Hardcoded font-size found — use design system typography scale"
+else
+  ok "No hardcoded font sizes"
+fi
+
+# Lorem ipsum in UI code
+LOREM=$(echo "$CHANGED_CONTENT" | grep -iE '^\+[^+].*lorem\s+ipsum' || echo "")
+if [ -n "$LOREM" ]; then
+  die "Lorem ipsum found in changes — replace with real content"
+else
+  ok "No lorem ipsum"
+fi
+
+# Generic loading text (no "Loading..." plain text)
+GENERIC_LOADING=$(echo "$CHANGED_CONTENT" | grep -iE '^\+[^+].*["\x27](Loading\.\.\.|loading\.\.\.)["\x27]' || echo "")
+if [ -n "$GENERIC_LOADING" ]; then
+  warn "Generic 'Loading...' text found — use skeleton, spinner with intent, or progress bar"
+else
+  ok "No generic loading text"
+fi
+
+# Blame/technical error messages
+BLAME_ERRORS=$(echo "$CHANGED_CONTENT" | grep -iE '^\+[^+].*(error occurred|something went wrong|an error has occurred|contact support)' || echo "")
+if [ -n "$BLAME_ERRORS" ]; then
+  warn "Generic error messages found — errors should be gentle, blame-free, with recovery path"
+else
+  ok "No generic error messages"
+fi
+
+# Inline styles in JSX/TSX
+INLINE_STYLES=$(echo "$CHANGED_CONTENT" | grep -E '^\+[^+].*style=\{\{' || echo "")
+if [ -n "$INLINE_STYLES" ]; then
+  warn "Inline style={{}} found — use design system components or CSS modules instead"
+else
+  ok "No inline styles"
+fi
+
+# Unoptimized img tags (missing loading=lazy, srcSet, or next/image equivalent)
+UNOPT_IMG=$(echo "$CHANGED_CONTENT" | grep -E '^\+[^+].*<img\s' | grep -vE '(loading="lazy"|srcSet|srcset|Image)' || echo "")
+if [ -n "$UNOPT_IMG" ]; then
+  warn "Unoptimized <img> tags found — add loading='lazy', srcSet, or use framework image component"
+else
+  ok "No unoptimized images"
+fi
+
+# Touch targets: very small buttons/links (width/height < 44px)
+SMALL_TARGETS=$(echo "$CHANGED_CONTENT" | grep -E '^\+[^+].*(width|height|size|minWidth|minHeight|w-|h-)\s*[:=]\s*([0-9]|[1-3][0-9]|40|41|42|43)(px)?' | grep -vE '(font-size|icon|border|stroke|line|badge|dot|indicator)' || echo "")
+if [ -n "$SMALL_TARGETS" ]; then
+  warn "Possible small touch targets (<44px) — interactive elements need ≥44x44px"
+else
+  ok "No suspiciously small touch targets"
+fi
+
+# ═══════════════════════════════════════════════════════════════
 # RESULT
 # ═══════════════════════════════════════════════════════════════
 

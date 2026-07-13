@@ -1,0 +1,125 @@
+# Design System
+
+## Identity
+
+- Framework: [Tailwind CSS + shadcn/ui | NextUI | Chakra UI | MUI | Mantine | Ant Design | Custom]
+- Component library: [library name and version]
+- Icon set: [Lucide | Heroicons | Phosphor | FontAwesome | Custom]
+- Font: [Inter | system-ui | custom — include source and weights]
+
+## Design Tokens
+
+### Colors
+| Token | Hex | Usage |
+|-------|-----|-------|
+| --color-primary | #... | Primary actions, links, brand |
+| --color-primary-foreground | #... | Text on primary |
+| --color-secondary | #... | Secondary actions, accents |
+| --color-secondary-foreground | #... | Text on secondary |
+| --color-background | #... | Page background |
+| --color-foreground | #... | Primary text |
+| --color-muted | #... | Secondary text, captions |
+| --color-muted-foreground | #... | Text on muted |
+| --color-border | #... | Borders, dividers |
+| --color-input | #... | Input backgrounds |
+| --color-ring | #... | Focus rings |
+| --color-destructive | #... | Delete, error actions |
+| --color-destructive-foreground | #... | Text on destructive |
+| --color-success | #... | Success indicators |
+| --color-warning | #... | Warning indicators |
+
+### Typography Scale
+| Token | Size | Line-height | Weight | Usage |
+|-------|------|-------------|--------|-------|
+| --text-xs | 0.75rem | 1rem | 400 | Captions, labels |
+| --text-sm | 0.875rem | 1.25rem | 400 | Body small, help text |
+| --text-base | 1rem | 1.5rem | 400 | Body text |
+| --text-lg | 1.125rem | 1.75rem | 500 | Subheadings |
+| --text-xl | 1.25rem | 1.75rem | 600 | Card titles |
+| --text-2xl | 1.5rem | 2rem | 600 | Section headers |
+| --text-3xl | 1.875rem | 2.25rem | 700 | Page titles |
+| --text-4xl | 2.25rem | 2.5rem | 700 | Hero text |
+
+### Spacing Scale (8px grid)
+| Token | Value | Usage |
+|-------|-------|-------|
+| --space-1 | 0.25rem (4px) | Tight inline |
+| --space-2 | 0.5rem (8px) | Inline gap |
+| --space-3 | 0.75rem (12px) | Compact padding |
+| --space-4 | 1rem (16px) | Standard padding |
+| --space-6 | 1.5rem (24px) | Section gap |
+| --space-8 | 2rem (32px) | Large gap |
+| --space-12 | 3rem (48px) | Section padding |
+| --space-16 | 4rem (64px) | Page padding |
+
+### Border Radius
+| Token | Value | Usage |
+|-------|-------|-------|
+| --radius-sm | 0.25rem | Checkboxes, badges |
+| --radius-md | 0.375rem | Inputs, buttons |
+| --radius-lg | 0.5rem | Cards, modals |
+| --radius-xl | 0.75rem | Large containers |
+| --radius-full | 9999px | Pills, avatars |
+
+### Shadows
+| Token | Value | Usage |
+|-------|-------|-------|
+| --shadow-sm | 0 1px 2px rgba(0,0,0,0.05) | Subtle elevation |
+| --shadow-md | 0 4px 6px -1px rgba(0,0,0,0.1) | Cards, dropdowns |
+| --shadow-lg | 0 10px 15px -3px rgba(0,0,0,0.1) | Modals |
+| --shadow-xl | 0 20px 25px -5px rgba(0,0,0,0.1) | Top-level overlays |
+
+## Motion
+
+| Property | Value | Usage |
+|----------|-------|-------|
+| Duration fast | 150ms | Hover, focus, micro |
+| Duration normal | 200ms | Transitions, fade |
+| Duration slow | 300ms | Page transitions, modals |
+| Easing default | cubic-bezier(0.4, 0, 0.2, 1) | Standard transitions |
+| Easing in | cubic-bezier(0.4, 0, 1, 1) | Elements entering |
+| Easing out | cubic-bezier(0, 0, 0.2, 1) | Elements exiting |
+
+## Component Inventory
+
+List every component in the design system. Mark which exist and which are planned.
+
+| Component | Status | Variants | Notes |
+|-----------|--------|----------|-------|
+| Button | exists | primary, secondary, ghost, destructive, loading, icon-only | |
+| Input | exists | text, password, email, number, textarea | |
+| Select | exists | single, multi, searchable | |
+| Checkbox | exists | default, indeterminate | |
+| Radio | exists | default, card | |
+| Switch | exists | default | |
+| Label | exists | default | |
+| Card | exists | default, interactive, hoverable | |
+| Dialog/Modal | exists | default, alert, sheet | |
+| Dropdown Menu | exists | default | |
+| Toast/Notification | exists | success, error, warning, info | |
+| Avatar | exists | image, initials, fallback | |
+| Badge | exists | default, secondary, destructive, outline | |
+| Skeleton | exists | text, circle, rectangle, card | |
+| Tabs | exists | default, underline, pills | |
+| Tooltip | exists | default | |
+| Breadcrumb | planned | default | |
+| Pagination | planned | default | |
+| Table | planned | default, striped, sortable | |
+| Data Table | planned | sortable, filterable, paginated, selectable | |
+| Command Palette | planned | default | |
+| Date Picker | planned | single, range | |
+| File Upload | planned | drag-drop, button | |
+| Progress | planned | bar, circle | |
+| Slider | planned | default, range | |
+| Accordion | planned | default | |
+| Sheet/Drawer | planned | left, right | |
+| Empty State | planned | default, with action | |
+| Error State | planned | default, with retry | |
+
+## Voice & Tone
+
+- [Product voice description — e.g. "Warm and direct, like a helpful colleague"]
+- [What the product never says — e.g. "Never technical, never sarcastic, never blame the user"]
+- [Error message template — e.g. "We couldn't [action]. [Reason in plain language]. [Next step]."]
+- [Success message template — e.g. "[Action] complete! [Result or next step]."]
+- [Empty state template — e.g. "[What would be here]. [Benefits of adding/finding it]. [Primary CTA]."]

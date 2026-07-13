@@ -63,19 +63,28 @@ else
   fail ".husky/pre-commit missing"
 fi
 
-# 6. Graphify (if applicable — Phase 4+)
-if [ -n "${PHASE:-}" ] && [ "$PHASE" -ge 4 ] 2>/dev/null; then
+# 6. Graphify (required Phase 3+)
+if [ -n "${PHASE:-}" ] && [ "$PHASE" -ge 3 ] 2>/dev/null; then
   if python3 -c "import graphify" 2>/dev/null; then
+    ok "Graphify installed"
     if [ -f "$PROJECT_ROOT/graphify-out/graph.json" ]; then
-      ok "Graph exists — run '/graphify . --update' to sync before querying"
+      ok "Graph exists"
+      LAST_GRAPH=$(stat -c %Y "$PROJECT_ROOT/graphify-out/graph.json" 2>/dev/null || stat -f %m "$PROJECT_ROOT/graphify-out/graph.json" 2>/dev/null)
+      NOW=$(date +%s)
+      AGE=$(( (NOW - LAST_GRAPH) / 3600 ))
+      if [ "$AGE" -gt 24 ]; then
+        fail "Graph is $AGE hours stale — run '/graphify . --update' before proceeding"
+      else
+        ok "Graph fresh ($AGE hours old)"
+      fi
     else
-      skip "Graphify installed but no graph yet — run '/graphify .' to build"
+      fail "No graph found at graphify-out/graph.json — run '/graphify .' to build"
     fi
   else
-    skip "Graphify not installed — graph queries unavailable, read files directly"
+    fail "Graphify not installed — run: uv tool install graphifyy"
   fi
 else
-  skip "Graphify not needed yet (Phase ${PHASE:-0})"
+  skip "Graphify not required until Phase 3 (current: ${PHASE:-0})"
 fi
 
 echo ""
