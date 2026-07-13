@@ -99,6 +99,8 @@ Building any user-facing feature, designing any interaction, writing any copy, o
 - [ ] Undo on destructive actions
 - [ ] Autosave/draft persistence (no data loss through normal use)
 - [ ] Interactions respond in <100ms
+- [ ] Page/route transitions instant (<50ms perceived)
+- [ ] Network failures degrade gracefully (cached content, offline mode, queued actions)
 - [ ] Natural sharing/invite reason built in
 - [ ] Shareable outputs (link, image, embed)
 - [ ] Invite flow <3 taps
@@ -106,7 +108,14 @@ Building any user-facing feature, designing any interaction, writing any copy, o
 - [ ] Public changelog exists
 - [ ] Core actions work offline
 - [ ] Zero-config path tested
+- [ ] Works on the device the user has right now (browser, OS, screen size)
+- [ ] No mysterious errors — plain-language explanations
+- [ ] Feature requests have public status (considering → building → shipped)
+- [ ] Bug reports get human response within 48 hours
+- [ ] Product visibly improves between visits
 - [ ] Joyful states accessible to all users (keyboard, screen reader, reduced motion)
+- [ ] Color-blind users get emotional cues through shape/icon/pattern
+- [ ] Mom test: would your mom understand what this does in one sentence?
 - [ ] No generic spinners, no lorem ipsum, no "contact support" as primary CTA
 
 ## Anti-patterns

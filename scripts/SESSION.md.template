@@ -4,6 +4,24 @@ Phase: 1
 Status: in_progress
 Last active: [agent fills in date]
 
+## Domain scope
+- ux: needed | deferred | N/A
+- security: needed | deferred | N/A
+- compliance: needed | deferred | N/A
+- performance: needed | deferred | N/A
+- observability: needed | deferred | N/A
+- monetization: needed | deferred | N/A
+- analytics: needed | deferred | N/A
+- notifications: needed | deferred | N/A
+- search: needed | deferred | N/A
+- real-time: needed | deferred | N/A
+- background-jobs: needed | deferred | N/A
+- rollout: needed | deferred | N/A
+- incident-management: needed | deferred | N/A
+- cost-management: needed | deferred | N/A
+- dx: needed | deferred | N/A
+- i18n: needed | deferred | N/A
+
 ## Active work
 - Initial requirements gathering
 - Next step: define domain terms in CONTEXT.md
@@ -18,3 +36,8 @@ Last active: [agent fills in date]
 ## Standards
 - Pre-commit hook: not configured
 - Last check: n/a
+
+## Lovable checks
+- Time-to-wow: unknown (last measured: never)
+- Hallway tests: 0 people (last test: never)
+- Simplicity audit: nothing removed yet

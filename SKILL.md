@@ -19,7 +19,9 @@ Five phases. Each delegates to an existing skill and gates on the verify protoco
 
 Present the full domain list and let the user mark each as **needed**, **deferred** (for later phases), or **N/A** (not applicable). Record decisions in `docs/SESSION.md` under `## Domain scope`. Only needed domains gate Phase 1; deferred domains are tracked but don't block; N/A domains are never mentioned again.
 
-Full domain list: UX, security, compliance, performance, observability, monetization, analytics, notifications, search, real-time, background jobs, rollout, incident management, cost management, DX
+Full domain list: ux, security, compliance, performance, observability, monetization, analytics, notifications, search, real-time, background-jobs, rollout, incident-management, cost-management, dx, i18n
+
+These are optional domains the user chooses to include or defer. The following standards are **always-on** (not presented in the scope question): code-quality, testing, data-management, deployment, reliability, api-design, documentation.
 
 ## Phase 1: Grill + Document
 
@@ -30,7 +32,7 @@ Create in `docs/`:
 - `docs/adr/` — hard-to-reverse decisions
 - `docs/SESSION.md` — copy from `scripts/SESSION.md.template`
 - `docs/ux-principles.md` — who is this for, what problem does it solve, why would they love it and tell others
-- Domain docs: only for domains marked **needed** in Phase 0 scope. Skip N/A domains silently.
+- Domain docs: only for domains marked **needed** in Phase 0 scope. For each needed domain, create `docs/<domain>.md` — a project-specific adaptation of the corresponding `*-STANDARDS.md` file. Summarize the rules that apply to this project, add project-specific constraints, and link back to the canonical standards file. Skip N/A domains silently.
 
 Also create `AGENTS.md` in project root — copy from `scripts/AGENTS.md.template`.
 
@@ -72,7 +74,7 @@ In addition to architecture prototypes, create UX tickets:
 Break decisions into vertical-slice implementation tickets. Every ticket must include acceptance criteria from relevant `*-STANDARDS.md` files, and **at least one loveability AC** from LOVABLE-STANDARDS.md (time-to-wow, simplicity, delight, shareability, error forgiveness, etc.).
 
 **Tooling setup (do before coding):**
-- Lint, format, typecheck, security scanning, test framework, CI/CD, observability, design system
+- Lint, format, typecheck, security scanning, test framework — each is a ticket in Phase 4, not a setup step here
 - Copy standards and scripts (see below)
 - Wire pre-commit hook
 
@@ -93,14 +95,14 @@ Per ticket:
 3. TDD (tests first)
 4. Minimal implementation
 5. **Simplicity check:** What did this ticket let us remove? If the answer is "nothing," pause — is the feature earning its complexity?
-6. **Show a human:** Before commit, show the working feature to one person who's never seen it. Watch silently. Fix what confused them.
+6. **Hallway test:** Before commit, show the working feature to one person who's never seen it. Watch silently. Fix what confused them.
 7. Run verify protocol (before commit)
 8. Commit, update SESSION.md
 
 **Gate:**
 - [ ] All tickets closed
 - [ ] Run verify protocol — all tests pass, no stale docs
-- [ ] Every ticket that touched UI was shown to ≥1 human before commit
+- [ ] Every ticket that touched UI passed a hallway test before commit
 - [ ] SESSION.md phase → 5
 
 ## Phase 5: Review
@@ -117,7 +119,7 @@ Parallel sub-agents check:
 **Gate:**
 - [ ] Review report delivered, issues addressed
 - [ ] Run verify protocol (includes LOVABLE-STANDARDS.md — is it simple, delightful, shareable?)
-- [ ] "Show a friend" test: the reviewer (who hasn't built it) can use the core path without help
+- [ ] Hallway test: the reviewer (who hasn't built it) can use the core path without help
 - [ ] SESSION.md status → complete
 
 ## Resuming
@@ -143,7 +145,7 @@ Lighter re-entry for post-ship features:
 1. **Mini-grill** — update CONTEXT.md if new terms, ADR only if hard-to-reverse. Re-answer the people-love-it questions for this feature specifically.
 2. **Mini-wayfind** — investigation tickets only if uncharted architecture; else skip. UX prototype only if the interaction is novel; else skip.
 3. **To-tickets** — vertical-slice tickets with inherited acceptance criteria. Every ticket still gets ≥1 loveability AC.
-4. **Implement** — standard Phase 4 flow per ticket (simplicity check + show a human before commit).
+4. **Implement** — standard Phase 4 flow per ticket (simplicity check + hallway test before commit).
 5. **Review** — diff against standards + spec + docs + lovable checklist.
 
 Run verify protocol after every step. Tooling persists; no re-setup needed.
@@ -157,8 +159,8 @@ Runs at **every phase gate, every pre-commit, every review.** No exceptions.
 2. npm run typecheck        → fix all failures (skip if no code yet)
 3. npm run lint             → fix all failures (skip if no code yet)
 4. npm test                 → fix all failures (skip if no code yet)
-5. Manual: read LOVABLE-STANDARDS.md and UX-STANDARDS.md checklists, verify every item
-6. Manual: read all other applicable *-STANDARDS.md checklists, verify every item
+5. Manual: read LOVABLE-STANDARDS.md checklist, verify every item
+6. Manual: read all applicable domain *-STANDARDS.md checklists, verify every item
 7. Manual: read all docs in docs/, check:
    - All CONTEXT.md terms used consistently (no synonyms, no drift)
    - All ADR decisions reflected in tickets + code
@@ -178,9 +180,11 @@ Runs at **every phase gate, every pre-commit, every review.** No exceptions.
 Run once in Phase 3:
 
 ```bash
-cp ~/.config/opencode/skills/platform-builder/*-STANDARDS.md standards/
-cp ~/.config/opencode/skills/platform-builder/scripts/verify.sh scripts/
-cp ~/.config/opencode/skills/platform-builder/scripts/pre-commit-standards-hook.sh .husky/
+SKILL_DIR="${SKILL_DIR:-$HOME/.config/opencode/skills/platform-builder}"
+cp "$SKILL_DIR"/*-STANDARDS.md standards/
+cp "$SKILL_DIR"/scripts/verify.sh scripts/
+mkdir -p .husky
+cp "$SKILL_DIR"/scripts/pre-commit-standards-hook.sh .husky/
 ```
 
 Wire into `.husky/pre-commit`:

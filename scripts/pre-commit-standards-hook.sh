@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 PROJECT_ROOT="$(git rev-parse --show-toplevel)"
 
 if [ -f "$PROJECT_ROOT/scripts/verify.sh" ]; then

@@ -16,7 +16,6 @@ DIFF_FILES=$(git diff --name-only 2>/dev/null || echo "")
 CHANGED_CONTENT=$( (git diff --cached -U0 2>/dev/null && git diff -U0 2>/dev/null) || echo "")
 FAILED=0
 PASSED=0
-declare -A APPLIES
 
 die() { echo "FAIL: $*"; FAILED=$((FAILED + 1)); }
 ok()   { echo "PASS: $*"; PASSED=$((PASSED + 1)); }
@@ -35,7 +34,6 @@ dedupe() { APPLIES["$1"]=1; }
 
 determine_standards() {
   local files="$1" f
-  APPLIES=()
   declare -A APPLIES
 
   for f in $files; do
@@ -152,16 +150,22 @@ echo "--- Doc Unification ---"
 
 # SESSION.md validity
 if [ -f "$SESSION_FILE" ]; then
-  PHASE=$(grep -E '^Phase:' "$SESSION_FILE" | sed 's/Phase: *//' | tr -d '[:space:]')
-  STATUS=$(grep -E '^Status:' "$SESSION_FILE" | sed 's/Status: *//' | tr -d '[:space:]')
-  LAST_ACTIVE=$(grep -E '^Last active:' "$SESSION_FILE" | sed 's/Last active: *//' | tr -d '[:space:]')
+  PHASE=$(grep -E '^Phase:' "$SESSION_FILE" | sed 's/Phase: *//' | xargs)
+  STATUS=$(grep -E '^Status:' "$SESSION_FILE" | sed 's/Status: *//' | xargs)
+  LAST_ACTIVE=$(grep -E '^Last active:' "$SESSION_FILE" | sed 's/Last active: *//' | xargs)
 
   [ -z "$PHASE" ] && die "SESSION.md missing Phase" || ok "SESSION.md Phase=$PHASE"
   [ -z "$STATUS" ] && die "SESSION.md missing Status" || ok "SESSION.md Status=$STATUS"
   [ -z "$LAST_ACTIVE" ] && die "SESSION.md missing Last active" || ok "SESSION.md Last active=$LAST_ACTIVE"
 
-  echo "1 2 3 4 5 feature" | grep -qw "$PHASE" && ok "Phase '$PHASE' valid" || die "Phase '$PHASE' invalid"
-  echo "in_progress blocked complete" | grep -qw "$STATUS" && ok "Status '$STATUS' valid" || die "Status '$STATUS' invalid"
+  case "$PHASE" in
+    1|2|3|4|5|feature) ok "Phase '$PHASE' valid" ;;
+    *) die "Phase '$PHASE' invalid (expected 1-5 or feature)" ;;
+  esac
+  case "$STATUS" in
+    in_progress|blocked|complete) ok "Status '$STATUS' valid" ;;
+    *) die "Status '$STATUS' invalid" ;;
+  esac
 
   if ! grep -q '^## Doc consistency' "$SESSION_FILE" 2>/dev/null; then
     die "SESSION.md missing ## Doc consistency section"
@@ -218,8 +222,11 @@ for doc in $ALL_DOCS; do
   [ -z "$doc" ] && continue
   STALE_LINKS=$(grep -oE '\[([^]]*)\]\(([^)]*\.md)\)' "$doc" 2>/dev/null | grep -oE '\([^)]+\)' | tr -d '()' || echo "")
   for link in $STALE_LINKS; do
-    link="$PROJECT_ROOT/$link"
-    link="$(echo "$link" | sed 's|/\./|/|g')"
+    case "$link" in
+      http://*|https://*) continue ;;
+    esac
+    link="$(dirname "$doc")/$link"
+    link="$(echo "$link" | sed 's|/\./|/|g; s|//\+|/|g')"
     [ ! -f "$link" ] && die "Broken link in $(basename "$doc"): $link"
   done
 done
@@ -238,6 +245,25 @@ for doc in $ALL_DOCS; do
   done
   [ "$REFERENCED" = false ] && warn "Orphan doc: $doc_name"
 done
+
+# UX principles doc
+UX_PRINCIPLES="$PROJECT_ROOT/docs/ux-principles.md"
+if [ -f "$UX_PRINCIPLES" ]; then
+  ok "ux-principles.md exists"
+else
+  warn "ux-principles.md not found (should exist in Phase 1+)"
+fi
+
+# Key standards existence (Phase 3+)
+if [ -d "$STANDARDS_DIR" ]; then
+  for key_std in LOVABLE-STANDARDS.md UX-STANDARDS.md SECURITY-STANDARDS.md; do
+    if [ -f "$STANDARDS_DIR/$key_std" ]; then
+      ok "$key_std present in standards/"
+    else
+      warn "$key_std missing from standards/ — copy from platform-builder skill"
+    fi
+  done
+fi
 
 # ═══════════════════════════════════════════════════════════════
 # RESULT

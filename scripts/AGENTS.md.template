@@ -11,3 +11,4 @@ This project uses platform-builder. Load the skill before any work.
 5. Manual verify: applicable STANDARDS.md checklists + all docs (term consistency, no contradictions, no stale docs)
 6. Update `docs/SESSION.md` after every session
 7. `scripts/verify.sh` exits non-zero → blocked. Fix everything before proceeding.
+8. Never pin outdated versions. Before adding a dependency, run `pnpm install <pkg>` to get the latest. Use `latest` or `^major` ranges in package.json — let pnpm resolve. Never guess version numbers.
