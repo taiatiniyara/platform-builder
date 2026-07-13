@@ -1,75 +1,45 @@
-# Observability Standards
+# Observability & Incident Management Standards
 
 ## Applies when
 
-Writing any code that runs in production, especially request handling, background jobs, or external integrations.
-
-## Rules
-
-### Logging
-
-- JSON format (machine-readable, not plain text)
-- Correlation IDs (X-Request-ID header, track across services)
-- Appropriate log levels (DEBUG, INFO, WARN, ERROR, FATAL)
-- Context enrichment (user ID, request ID, timestamp, service name)
-- No sensitive data (passwords, tokens, PII, secrets)
-- Centralized logging (ELK, Datadog, CloudWatch)
-
-### Metrics
-
-- Request metrics: rate, error rate, latency percentiles (p50, p95, p99)
-- Business metrics: signups, conversions, active users, revenue
-- Infrastructure metrics: CPU, memory, disk, network, connections
-- Custom metrics: queue depth, cache hit rate
-- Metric collection: Prometheus, StatsD, CloudWatch, Datadog
-- Retention: short-term (high res) and long-term (aggregated)
-
-### Tracing
-
-- Trace propagation (W3C Trace Context, trace ID flows through services)
-- Span collection (each operation is a span with start/end time)
-- Visualization: Jaeger, Zipkin, Datadog APM, AWS X-Ray
-- Critical path analysis (identify bottlenecks)
-- Sampling in production (not all traces, reduce overhead)
-
-### Alerting
-
-- Rules based on metrics, logs, or traces (thresholds, anomalies)
-- Routing to right team/channel (PagerDuty, Slack, email)
-- Severity levels: P1 (critical), P2 (high), P3 (medium), P4 (low)
-- On-call rotation with escalation policies
-- Actionable alerts only (tune thresholds, prevent fatigue)
-
-### Debugging
-
-- Feature flags (toggle without deployment)
-- Admin endpoints (user lookup, data inspection)
-- Request replay (replay production requests in staging)
-- Log search (searchable logs with filters)
-- Profiling tools (CPU, memory, I/O in production with caution)
+Writing production code, configuring monitoring/alerting, or setting up incident response.
 
 ## Checklist
 
-- [ ] Structured logging (JSON format)
-- [ ] Correlation IDs present
-- [ ] No sensitive data in logs
-- [ ] Request metrics collected (rate, errors, latency)
-- [ ] Business metrics collected
-- [ ] Distributed tracing configured
-- [ ] Alerts configured for critical metrics
-- [ ] Feature flags implemented
-- [ ] Admin endpoints available
-- [ ] Log aggregation configured
+### Logging
+- [ ] Structured logging (JSON); correlation IDs (X-Request-ID) across services
+- [ ] Appropriate log levels (DEBUG/INFO/WARN/ERROR/FATAL); context enrichment
+- [ ] No sensitive data in logs (passwords, tokens, PII); centralized log aggregation
 
-## Anti-patterns
+### Metrics
+- [ ] Request metrics: rate, error rate, latency p50/p95/p99
+- [ ] Business metrics: signups, conversions, active users, revenue
+- [ ] Infrastructure metrics: CPU, memory, disk, network; custom metrics (queue depth, cache hit rate)
 
-- console.log in production → use structured logging
-- No correlation IDs → add X-Request-ID
-- Logging sensitive data → sanitize logs
-- No metrics → add metric collection
-- Alerts without runbooks → create runbooks
-- Too many alerts → tune thresholds
-- No distributed tracing → add tracing
-- No feature flags → add feature flag system
-- Manual debugging → add admin endpoints
-- Scattered logs → centralize logging
+### Tracing
+- [ ] Distributed tracing (W3C Trace Context); spans for each operation
+- [ ] Visualization (Jaeger, Zipkin, Datadog APM, X-Ray); sampling in production
+
+### Alerting
+- [ ] Rules on metrics/logs/traces; routed to right team (PagerDuty, Slack)
+- [ ] Severity: P1 critical, P2 high, P3 medium, P4 low; on-call rotation + escalation
+- [ ] Actionable alerts only (tune thresholds, prevent fatigue)
+
+### Debugging
+- [ ] Feature flags (toggle without deploy); admin endpoints (user lookup, data inspection)
+- [ ] Request replay in staging; searchable logs with filters; profile in production with caution
+
+### Incident Response
+- [ ] Incident commander + on-call rotation; severity classification
+- [ ] War room + status page communication; timeline documentation
+- [ ] Runbooks for common incidents; rollback procedures documented and tested
+- [ ] Mitigation before root cause fix; verified resolution
+
+### Post-Mortem
+- [ ] Blameless (focus on systems); root cause analysis (5 whys)
+- [ ] Action items tracked to completion; documented and shared with team
+
+### Prevention & Metrics
+- [ ] Chaos engineering (Chaos Monkey, Gremlin); game days (simulated scenarios)
+- [ ] Track: MTTD, MTTR, MTBF, incident frequency, severity distribution
+- [ ] Public status page with updates every 15-30min during incident; SLA tracking

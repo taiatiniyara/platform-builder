@@ -1,100 +1,40 @@
-# Background Jobs Standards
+# Background Jobs & Notifications Standards
 
 ## Applies when
 
-Implementing asynchronous processing, email sending, file processing, or scheduled tasks.
-
-## Rules
-
-### Queue Infrastructure
-
-- Reliable queue (Bull, BullMQ, Sidekiq, Celery, AWS SQS, Redis Queue)
-- Prioritization (critical jobs first: password reset > email digest)
-- Scheduling (future execution, cron-like)
-- Deduplication (idempotency keys)
-- Timeouts (for long-running jobs)
-- Concurrency control (parallel job limit)
-
-### Processing Patterns
-
-- Retry strategy (exponential backoff with jitter)
-- Dead letter queue (permanently failed jobs for inspection)
-- Cancellation (cancel pending/running jobs)
-- Progress tracking (0-100% for long jobs)
-- Dependencies (chain jobs: B after A)
-- Batching (multiple items in one job)
-
-### Common Types
-
-- Email sending (transactional, marketing, notifications)
-- File processing (image resizing, video transcoding, PDF generation)
-- Data processing (ETL, aggregation, reports)
-- Webhook delivery (reliable, with retries)
-- Scheduled tasks (daily/weekly/monthly: cleanup, backups, reports)
-- Third-party integrations (Stripe, Slack sync)
-
-### Reliability
-
-- Idempotency (safe retries without side effects)
-- Transactional processing (complete or rollback)
-- Error handling (catch, log, don't crash silently)
-- Monitoring (success/failure rates, processing times)
-- Alerting (high failure rates, long queues, stuck jobs)
-- Replay (retry failed jobs after fix)
-
-### Performance
-
-- Batching (multiple items, reduce overhead)
-- Chunking (split large jobs, parallel processing)
-- Optimization (slow jobs: database queries, API calls)
-- Resource management (memory/CPU control)
-- Scheduling (off-peak hours, reduce load)
-- Caching (avoid reprocessing)
-
-### Monitoring
-
-- Metrics (queue depth, processing time, success/failure rates)
-- Logging (structured: job ID, type, status, duration)
-- Tracing (distributed tracing for jobs calling services)
-- Dashboards (real-time visibility)
-- Alerting (anomalies: high failure, long queue, stuck jobs)
-- Debugging (inspect state, retry, cancel)
-
-### Security
-
-- Authentication (authenticate job sources)
-- Validation (validate payloads, prevent injection)
-- Secrets (environment variables, secret managers)
-- Isolation (no shared state between jobs)
-- Rate limiting (prevent abuse)
-- Audit trail (who created jobs, when, what they did)
+Implementing async processing, job queues, email, push/SMS notifications, or webhooks.
 
 ## Checklist
 
-- [ ] Queue system configured
-- [ ] Job prioritization implemented
-- [ ] Retry strategy configured
-- [ ] Dead letter queue configured
-- [ ] Job timeouts set
-- [ ] Idempotency implemented
-- [ ] Error handling implemented
-- [ ] Monitoring configured
-- [ ] Alerting configured
-- [ ] Job replay capability exists
-- [ ] Job authentication implemented
-- [ ] Job validation implemented
-- [ ] Job metrics collected
-- [ ] Job dashboards available
+### Queue Infrastructure
+- [ ] Reliable queue (BullMQ, Sidekiq, Celery, SQS); prioritization (critical first)
+- [ ] Retry with exponential backoff + jitter; dead letter queue for failed jobs
+- [ ] Job timeouts; idempotency keys; concurrency control; cancellation support
+- [ ] Progress tracking for long jobs; job chaining (B after A); batching
 
-## Anti-patterns
+### Reliability & Monitoring
+- [ ] Transactional processing; error handling (catch, log, don't crash silently)
+- [ ] Metrics: queue depth, processing time, success/failure rates; dashboards + alerting
+- [ ] Replay capability (retry failed after fix); structured logging per job
 
-- No queue (blocking on long operations) → add job queue
-- No retry strategy → add exponential backoff
-- No dead letter queue → add dead letter queue
-- No idempotency → implement idempotency
-- No monitoring → add monitoring
-- No timeouts → set timeouts
-- No error handling → add error handling
-- No prioritization → add prioritization
-- No deduplication → add deduplication
-- No cancellation → add cancellation capability
+### Email
+- [ ] Transactional emails (verification, password reset); branded HTML + plain text templates
+- [ ] Delivery tracking (delivery, opens, clicks, bounces); throttling; unsubscribe management
+
+### Push & In-App
+- [ ] Mobile (APNs, FCM) + web push with permissions; user preferences per channel
+- [ ] Rich notifications (images, actions, deep links); scheduling (time zones, quiet hours)
+- [ ] In-app notification center: types (info/warning/success/error), read/unread, actions
+
+### Webhooks
+- [ ] Reliable delivery with retries; HMAC-signed payloads; HTTPS only
+- [ ] Management UI for subscriptions; clear docs; versioning
+
+### SMS & Voice
+- [ ] Reliable provider (Twilio, AWS SNS); pre-approved templates; compliance (TCPA, GDPR)
+- [ ] SMS-based 2FA (TOTP preferred); cost management (SMS is expensive)
+
+### Architecture
+- [ ] Centralized notification service; channel abstraction (email, push, SMS, in-app)
+- [ ] User preferences (choose channels, frequency); template engine with variables; i18n
+- [ ] Job authentication; payload validation; no shared state; rate limiting; audit trail
